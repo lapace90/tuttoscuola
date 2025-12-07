@@ -60,6 +60,24 @@ export const getSlotsByTeacher = async (teacherId, startDate, endDate) => {
 };
 
 /**
+ * Get a single slot by ID
+ */
+export const getSlotById = async (slotId) => {
+  const { data, error } = await supabase
+    .from('booking_slots')
+    .select(`
+      *,
+      teacher:users!teacher_id(id, first_name, last_name, email),
+      class:classes(id, name),
+      bookings(id, student_id, status, student:users!student_id(id, first_name, last_name))
+    `)
+    .eq('id', slotId)
+    .single();
+
+  return { data, error };
+};
+
+/**
  * Create a booking slot (teacher only)
  */
 export const createSlot = async (slotData) => {

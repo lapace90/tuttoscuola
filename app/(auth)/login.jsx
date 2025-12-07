@@ -1,16 +1,16 @@
-// app/login.jsx
+// app/(auth)/login.jsx
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import React, { useRef, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
-import { hp, wp } from '../helpers/common';
-import { theme } from '../constants/theme';
-import { useAuth } from '../contexts/AuthContext';
-import ScreenWrapper from '../components/common/ScreenWrapper';
-import BackButton from '../components/BackButton';
-import Input from '../components/Input';
-import Button from '../components/Button';
-import Icon from '../components/Icon';
+import { hp, wp } from '../../helpers/common';
+import { theme } from '../../constants/theme';
+import { useAuth } from '../../contexts/AuthContext';
+import ScreenWrapper from '../../components/common/ScreenWrapper';
+import BackButton from '../../components/common/BackButton';
+import Input from '../../components/common/Input';
+import Button from '../../components/common/Button';
+import Icon from '../../assets/icons/Icon';
 
 const Login = () => {
   const router = useRouter();
@@ -35,7 +35,6 @@ const Login = () => {
     if (error) {
       Alert.alert('Errore', error.message);
     }
-    // Se login ok, il redirect avviene automaticamente via AuthContext
   };
 
   return (
@@ -44,13 +43,11 @@ const Login = () => {
       <View style={styles.container}>
         <BackButton router={router} />
 
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Bentornato! 👋</Text>
           <Text style={styles.subtitle}>Accedi con la tua email scolastica</Text>
         </View>
 
-        {/* Form */}
         <View style={styles.form}>
           <Input
             icon={<Icon name="mail" size={22} color={theme.colors.textLight} />}
@@ -67,7 +64,7 @@ const Login = () => {
             onChangeText={(value) => (passwordRef.current = value)}
           />
 
-          <Pressable onPress={() => router.push('/forgotPassword')}>
+          <Pressable onPress={() => router.push('/(auth)/forgotPassword')}>
             <Text style={styles.forgotPassword}>Password dimenticata?</Text>
           </Pressable>
 
@@ -78,10 +75,9 @@ const Login = () => {
           />
         </View>
 
-        {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>Non hai un account? </Text>
-          <Pressable onPress={() => router.push('/signUp')}>
+          <Pressable onPress={() => router.push('/(auth)/signUp')}>
             <Text style={styles.footerLink}>Registrati</Text>
           </Pressable>
         </View>

@@ -1,17 +1,17 @@
-// app/signUp.jsx
+// app/(auth)/signUp.jsx
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import React, { useRef, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
-import { hp, wp } from '../helpers/common';
-import { theme } from '../constants/theme';
-import { useAuth } from '../contexts/AuthContext';
-import { validateEmailDomain } from '../services/authService';
-import ScreenWrapper from '../components/common/ScreenWrapper';
-import BackButton from '../components/common/BackButton';
-import Input from '../components/common/Input';
-import Button from '../components/common/Button';
-import Icon from '../assets/icons';
+import { hp, wp } from '../../helpers/common';
+import { theme } from '../../constants/theme';
+import { useAuth } from '../../contexts/AuthContext';
+import { validateEmailDomain } from '../../services/authService';
+import ScreenWrapper from '../../components/common/ScreenWrapper';
+import BackButton from '../../components/common/BackButton';
+import Input from '../../components/common/Input';
+import Button from '../../components/common/Button';
+import Icon from '../../assets/icons/Icon';
 
 const SignUp = () => {
   const router = useRouter();
@@ -26,20 +26,17 @@ const SignUp = () => {
     const password = passwordRef.current.trim();
     const confirmPassword = confirmPasswordRef.current.trim();
 
-    // Validazioni
     if (!email || !password || !confirmPassword) {
       Alert.alert('Registrazione', 'Compila tutti i campi');
       return;
     }
 
-    // Valida dominio email
     const domainValidation = validateEmailDomain(email);
     if (!domainValidation.valid) {
       Alert.alert('Email non valida', domainValidation.error);
       return;
     }
 
-    // Verifica password
     if (password.length < 6) {
       Alert.alert('Password debole', 'La password deve avere almeno 6 caratteri');
       return;
@@ -60,7 +57,7 @@ const SignUp = () => {
       Alert.alert(
         'Controlla la tua email! 📧',
         'Ti abbiamo inviato un link di conferma. Clicca sul link per attivare il tuo account.',
-        [{ text: 'OK', onPress: () => router.replace('/login') }]
+        [{ text: 'OK', onPress: () => router.replace('/(auth)/login') }]
       );
     }
   };
@@ -71,7 +68,6 @@ const SignUp = () => {
       <View style={styles.container}>
         <BackButton router={router} />
 
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Crea account 🎓</Text>
           <Text style={styles.subtitle}>
@@ -79,7 +75,6 @@ const SignUp = () => {
           </Text>
         </View>
 
-        {/* Info box */}
         <View style={styles.infoBox}>
           <Icon name="info" size={18} color={theme.colors.secondary} />
           <Text style={styles.infoText}>
@@ -87,7 +82,6 @@ const SignUp = () => {
           </Text>
         </View>
 
-        {/* Form */}
         <View style={styles.form}>
           <Input
             icon={<Icon name="mail" size={22} color={theme.colors.textLight} />}
@@ -118,10 +112,9 @@ const SignUp = () => {
           />
         </View>
 
-        {/* Footer */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>Hai già un account? </Text>
-          <Pressable onPress={() => router.push('/login')}>
+          <Pressable onPress={() => router.push('/(auth)/login')}>
             <Text style={styles.footerLink}>Accedi</Text>
           </Pressable>
         </View>

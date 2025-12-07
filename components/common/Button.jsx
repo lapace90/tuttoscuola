@@ -9,7 +9,7 @@ const Button = ({
   onPress,
   loading = false,
   disabled = false,
-  variant = 'primary', // primary, secondary, outline
+  variant = 'primary',
   buttonStyle,
   textStyle,
 }) => {

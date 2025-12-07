@@ -1,17 +1,17 @@
-// app/forgotPassword.jsx
+// app/(auth)/forgotPassword.jsx
 import { Alert, StyleSheet, Text, View } from 'react-native';
 import React, { useRef, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
-import { hp, wp } from '../helpers/common';
-import { theme } from '../constants/theme';
-import { useAuth } from '../contexts/AuthContext';
-import { validateEmailDomain } from '../services/authService';
-import ScreenWrapper from '../components/common/ScreenWrapper';
-import BackButton from '../components/common/BackButton';
-import Input from '../components/common/Input';
-import Button from '../components/common/Button';
-import Icon from '../assets/icons';
+import { hp, wp } from '../../helpers/common';
+import { theme } from '../../constants/theme';
+import { useAuth } from '../../contexts/AuthContext';
+import { validateEmailDomain } from '../../services/authService';
+import ScreenWrapper from '../../components/common/ScreenWrapper';
+import BackButton from '../../components/common/BackButton';
+import Input from '../../components/common/Input';
+import Button from '../../components/common/Button';
+import Icon from '../../assets/icons/Icon';
 
 const ForgotPassword = () => {
   const router = useRouter();
@@ -28,7 +28,6 @@ const ForgotPassword = () => {
       return;
     }
 
-    // Valida dominio email
     const domainValidation = validateEmailDomain(email);
     if (!domainValidation.valid) {
       Alert.alert('Email non valida', domainValidation.error);
@@ -82,7 +81,6 @@ const ForgotPassword = () => {
       <View style={styles.container}>
         <BackButton router={router} />
 
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Password dimenticata? 🔑</Text>
           <Text style={styles.subtitle}>
@@ -90,7 +88,6 @@ const ForgotPassword = () => {
           </Text>
         </View>
 
-        {/* Form */}
         <View style={styles.form}>
           <Input
             icon={<Icon name="mail" size={22} color={theme.colors.textLight} />}

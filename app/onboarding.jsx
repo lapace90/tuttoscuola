@@ -10,7 +10,7 @@ import { getClassesByInstitute } from '../services/userService';
 import ScreenWrapper from '../components/common/ScreenWrapper';
 import Input from '../components/common/Input';
 import Button from '../components/common/Button';
-import Icon from '../assets/icons';
+import Icon from '../assets/icons/Icon';
 
 const Onboarding = () => {
   const router = useRouter();
@@ -80,7 +80,6 @@ const Onboarding = () => {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.title}>Completa il profilo ✨</Text>
           <Text style={styles.subtitle}>
@@ -88,7 +87,6 @@ const Onboarding = () => {
           </Text>
         </View>
 
-        {/* Nome e Cognome */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Come ti chiami?</Text>
           <View style={styles.nameRow}>
@@ -109,7 +107,6 @@ const Onboarding = () => {
           </View>
         </View>
 
-        {/* Ruolo */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Sei uno studente o un professore?</Text>
           <View style={styles.rolesContainer}>
@@ -141,7 +138,6 @@ const Onboarding = () => {
           </View>
         </View>
 
-        {/* Classe (solo per studenti) */}
         {selectedRole === 'student' && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Qual è la tua classe?</Text>
@@ -171,7 +167,6 @@ const Onboarding = () => {
           </View>
         )}
 
-        {/* Submit */}
         <View style={styles.submitSection}>
           <Button 
             title="Iniziamo! 🚀" 
@@ -272,7 +267,7 @@ const styles = StyleSheet.create({
     gap: wp(2),
   },
   classCard: {
-    width: (wp(88) - wp(8)) / 5, // 5 colonne
+    width: (wp(88) - wp(8)) / 5,
     aspectRatio: 1,
     backgroundColor: theme.colors.card,
     borderRadius: theme.radius.md,

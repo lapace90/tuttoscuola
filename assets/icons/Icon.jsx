@@ -1,4 +1,4 @@
-// components/Icon.jsx
+// assets/icons/Icon.jsx
 import React from 'react';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 
@@ -35,7 +35,7 @@ const iconMap = {
   
   // Chat
   messageCircle: { lib: 'feather', name: 'message-circle' },
-  messagSquare: { lib: 'feather', name: 'message-square' },
+  messageSquare: { lib: 'feather', name: 'message-square' },
   
   // Settings
   settings: { lib: 'feather', name: 'settings' },

@@ -1,42 +1,35 @@
 // app/index.jsx
 import { View, ActivityIndicator } from 'react-native';
-import React, { useEffect } from 'react';
-import { useRouter } from 'expo-router';
+import React from 'react';
+import { Redirect } from 'expo-router';
 import { useAuth } from '../contexts/AuthContext';
 import { theme } from '../constants/theme';
 
 const Index = () => {
-  const router = useRouter();
   const { user, profile, loading } = useAuth();
 
-  useEffect(() => {
-    if (loading) return;
+  if (loading) {
+    return (
+      <View style={{ 
+        flex: 1, 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        backgroundColor: theme.colors.background 
+      }}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
 
-    if (user) {
-      // Utente connesso
-      if (profile?.onboarding_completed) {
-        // Onboarding completato → vai all'app
-        router.replace('/(main)/calendar');
-      } else {
-        // Onboarding non completato → vai all'onboarding
-        router.replace('/onboarding');
-      }
-    } else {
-      // Non connesso → vai al welcome
-      router.replace('/welcome');
-    }
-  }, [user, profile, loading]);
+  if (!user) {
+    return <Redirect href="/welcome" />;
+  }
 
-  return (
-    <View style={{ 
-      flex: 1, 
-      justifyContent: 'center', 
-      alignItems: 'center',
-      backgroundColor: theme.colors.background 
-    }}>
-      <ActivityIndicator size="large" color={theme.colors.primary} />
-    </View>
-  );
+  if (!profile?.onboarding_completed) {
+    return <Redirect href="/onboarding" />;
+  }
+
+  return <Redirect href="/(main)/(tabs)/calendar" />;
 };
 
 export default Index;
