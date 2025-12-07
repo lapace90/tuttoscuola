@@ -54,11 +54,12 @@ const SignUp = () => {
     if (error) {
       Alert.alert('Errore', error.message);
     } else {
-      Alert.alert(
-        'Controlla la tua email! 📧',
-        'Ti abbiamo inviato un link di conferma. Clicca sul link per attivare il tuo account.',
-        [{ text: 'OK', onPress: () => router.replace('/(auth)/login') }]
-      );
+      router.replace('/onboarding');
+      // Alert.alert(
+      //   'Controlla la tua email! 📧',
+      //   'Ti abbiamo inviato un link di conferma. Clicca sul link per attivare il tuo account.',
+      //   [{ text: 'OK', onPress: () => router.replace('/(auth)/login') }]
+      // );
     }
   };
 

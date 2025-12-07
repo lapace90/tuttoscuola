@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
   },
   classCardSelected: {
     borderColor: theme.colors.primary,
-    backgroundColor: theme.colors.primaryLight + '20',
+    backgroundColor: theme.colors.primary,
   },
   className: {
     fontSize: hp(2),
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
   },
   classNameSelected: {
-    color: theme.colors.primary,
+    color: 'white',
   },
   loadingText: {
     fontSize: hp(1.6),

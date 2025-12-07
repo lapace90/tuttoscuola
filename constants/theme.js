@@ -108,7 +108,6 @@ export const roleColors = {
 // Colori per tipi di slot
 export const slotTypeColors = {
   interrogazione: '#dd592a',  // Arancione - importante
-  compito: '#f0b82e',         // Giallo - attenzione
   verifica: '#e53935',        // Rosso - urgente
   altro: '#6e8d9b',           // Blu-grigio - neutro
 };

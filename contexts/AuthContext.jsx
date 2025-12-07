@@ -49,9 +49,15 @@ export const AuthProvider = ({ children }) => {
   };
 
   const fetchProfile = async (userId) => {
-    const { data, error } = await userService.getUserById(userId);
-    if (!error && data) {
-      setProfile(data);
+    console.log('Fetching profile for:', userId);
+    try {
+      const { data, error } = await userService.getUserById(userId);
+      console.log('Profile result:', data, error);
+      if (!error && data) {
+        setProfile(data);
+      }
+    } catch (e) {
+      console.log('Profile fetch error:', e);
     }
   };
 

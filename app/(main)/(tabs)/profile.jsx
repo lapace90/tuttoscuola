@@ -84,6 +84,19 @@ const Profile = () => {
             <Icon name="chevronRight" size={20} color={theme.colors.textLight} />
           </Pressable>
 
+          {profile?.role === 'teacher' && (
+            <Pressable 
+              style={styles.menuItem}
+              onPress={() => router.push('/(main)/subjects')}
+            >
+              <View style={styles.menuIcon}>
+                <Icon name="book" size={22} color={theme.colors.text} />
+              </View>
+              <Text style={styles.menuText}>Le mie materie</Text>
+              <Icon name="chevronRight" size={20} color={theme.colors.textLight} />
+            </Pressable>
+          )}
+
           <Pressable style={styles.menuItem}>
             <View style={styles.menuIcon}>
               <Icon name="bell" size={22} color={theme.colors.text} />

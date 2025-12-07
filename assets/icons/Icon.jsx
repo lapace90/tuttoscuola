@@ -46,6 +46,10 @@ const iconMap = {
   book: { lib: 'feather', name: 'book' },
   bookOpen: { lib: 'feather', name: 'book-open' },
   bell: { lib: 'feather', name: 'bell' },
+  mic: { lib: 'feather', name: 'mic' },
+  clipboard: { lib: 'feather', name: 'clipboard' },
+  fileText: { lib: 'feather', name: 'file-text' },
+  chevronDown: { lib: 'feather', name: 'chevron-down' },
   
   // Material Icons (per icone non disponibili in Feather)
   school: { lib: 'material', name: 'school' },
