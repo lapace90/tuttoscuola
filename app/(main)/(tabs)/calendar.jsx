@@ -1,13 +1,41 @@
 // app/(main)/(tabs)/calendar.jsx
-import { View, Text, StyleSheet, ScrollView, Pressable, RefreshControl } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, Pressable, RefreshControl, FlatList } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'expo-router';
-import { hp, wp, formatCalendarDate } from '../../../helpers/common';
+import { hp, wp } from '../../../helpers/common';
 import { theme, slotTypeColors } from '../../../constants/theme';
 import { useAuth } from '../../../contexts/AuthContext';
 import { getSlotsByClass, getSlotsByTeacher } from '../../../services/bookingService';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import Icon from '../../../assets/icons/Icon';
+import AttendanceCard from '../../../components/attendance/AttendanceCard';
+
+const DAYS_PAST = 30;
+const DAYS_FUTURE = 180;
+
+// Festività italiane fisse (mese 0-indexed)
+const HOLIDAYS = [
+  { day: 1, month: 0 },   // Capodanno
+  { day: 6, month: 0 },   // Epifania
+  { day: 25, month: 3 },  // Liberazione
+  { day: 1, month: 4 },   // Festa Lavoratori
+  { day: 2, month: 5 },   // Festa Repubblica
+  { day: 15, month: 7 },  // Ferragosto
+  { day: 1, month: 10 },  // Ognissanti
+  { day: 8, month: 11 },  // Immacolata
+  { day: 25, month: 11 }, // Natale
+  { day: 26, month: 11 }, // Santo Stefano
+];
+
+const isHoliday = (date) => {
+  const day = date.getDate();
+  const month = date.getMonth();
+  return HOLIDAYS.some(h => h.day === day && h.month === month);
+};
+
+const isSunday = (date) => date.getDay() === 0;
+
+const isNonWorkingDay = (date) => isSunday(date) || isHoliday(date);
 
 const Calendar = () => {
   const router = useRouter();
@@ -16,20 +44,49 @@ const Calendar = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [days, setDays] = useState([]);
+  const dayListRef = useRef(null);
+
+  useEffect(() => {
+    generateDays();
+  }, []);
 
   useEffect(() => {
     loadSlots();
-  }, [profile, selectedDate]);
+  }, [profile]);
+
+  const generateDays = () => {
+    const today = new Date();
+    const daysList = [];
+    
+    for (let i = -DAYS_PAST; i <= DAYS_FUTURE; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      daysList.push(date);
+    }
+    
+    setDays(daysList);
+  };
+
+  // Scroll a oggi dopo il render
+  useEffect(() => {
+    if (days.length > 0 && dayListRef.current) {
+      setTimeout(() => {
+        dayListRef.current?.scrollToIndex({ index: DAYS_PAST, animated: false, viewPosition: 0 });
+      }, 100);
+    }
+  }, [days]);
 
   const loadSlots = async () => {
     if (!profile) return;
 
     setLoading(true);
     
-    const startDate = new Date(selectedDate);
-    startDate.setDate(startDate.getDate() - 7);
-    const endDate = new Date(selectedDate);
-    endDate.setDate(endDate.getDate() + 30);
+    const today = new Date();
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() - DAYS_PAST);
+    const endDate = new Date(today);
+    endDate.setDate(today.getDate() + DAYS_FUTURE);
 
     let result;
     if (profile.role === 'teacher') {
@@ -58,23 +115,80 @@ const Calendar = () => {
     setRefreshing(false);
   };
 
-  const groupSlotsByDate = () => {
-    const grouped = {};
-    slots.forEach(slot => {
-      if (!grouped[slot.date]) {
-        grouped[slot.date] = [];
-      }
-      grouped[slot.date].push(slot);
-    });
-    return grouped;
+  const formatDateKey = (date) => {
+    return date.toISOString().split('T')[0];
   };
 
-  const groupedSlots = groupSlotsByDate();
-  const sortedDates = Object.keys(groupedSlots).sort();
+  const isToday = (date) => {
+    const today = new Date();
+    return formatDateKey(date) === formatDateKey(today);
+  };
+
+  const isSelected = (date) => {
+    return formatDateKey(date) === formatDateKey(selectedDate);
+  };
+
+  const getDayName = (date) => {
+    return date.toLocaleDateString('it-IT', { weekday: 'short' }).slice(0, 3);
+  };
+
+  const getMonthYear = () => {
+    return selectedDate.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
+  };
+
+  const getSlotsForDate = (date) => {
+    const dateKey = formatDateKey(date);
+    return slots.filter(slot => slot.date === dateKey);
+  };
+
+  const hasSlots = (date) => {
+    return getSlotsForDate(date).length > 0;
+  };
+
+  const selectedSlots = getSlotsForDate(selectedDate);
+
+  const renderDayItem = ({ item: date }) => {
+    const selected = isSelected(date);
+    const today = isToday(date);
+    const hasSlotsOnDay = hasSlots(date);
+    const nonWorking = isNonWorkingDay(date);
+
+    return (
+      <Pressable
+        style={[
+          styles.dayItem,
+          nonWorking && styles.dayItemNonWorking,
+          selected && styles.dayItemSelected,
+          today && !selected && styles.dayItemToday,
+        ]}
+        onPress={() => setSelectedDate(date)}
+      >
+        <Text style={[
+          styles.dayName,
+          nonWorking && styles.dayNameNonWorking,
+          selected && styles.dayNameSelected,
+        ]}>
+          {getDayName(date)}
+        </Text>
+        <Text style={[
+          styles.dayNumber,
+          nonWorking && styles.dayNumberNonWorking,
+          selected && styles.dayNumberSelected,
+          today && !selected && styles.dayNumberToday,
+        ]}>
+          {date.getDate()}
+        </Text>
+        {hasSlotsOnDay && !selected && (
+          <View style={styles.dotIndicator} />
+        )}
+      </Pressable>
+    );
+  };
 
   const renderSlotCard = (slot) => {
     const bookedCount = slot.bookings?.filter(b => b.status === 'confirmed').length || 0;
-    const isFull = bookedCount >= slot.max_students;
+    const isVerifica = slot.type === 'verifica';
+    const isFull = !isVerifica && bookedCount >= slot.max_students;
     const isBooked = slot.bookings?.some(b => b.student_id === profile?.id && b.status === 'confirmed');
 
     return (
@@ -89,21 +203,33 @@ const Calendar = () => {
         
         <View style={styles.slotInfo}>
           <Text style={styles.slotSubject}>{slot.subject}</Text>
-          <Text style={styles.slotTime}>
-            <Icon name="clock" size={14} color={theme.colors.textLight} /> {slot.start_time?.slice(0, 5)}
-            {slot.end_time && ` - ${slot.end_time.slice(0, 5)}`}
-          </Text>
+          <View style={styles.slotTimeRow}>
+            <Icon name="clock" size={14} color={theme.colors.textLight} />
+            <Text style={styles.slotTime}>
+              {slot.start_time?.slice(0, 5)}
+              {slot.end_time && ` - ${slot.end_time.slice(0, 5)}`}
+            </Text>
+          </View>
           {profile?.role === 'student' && slot.teacher && (
             <Text style={styles.slotTeacher}>
               Prof. {slot.teacher.last_name}
             </Text>
           )}
+          {profile?.role === 'teacher' && slot.class && (
+            <Text style={styles.slotTeacher}>
+              Classe {slot.class.name}
+            </Text>
+          )}
         </View>
 
         <View style={styles.slotStatus}>
-          <Text style={[styles.slotCount, isFull && styles.slotCountFull]}>
-            {bookedCount}/{slot.max_students}
-          </Text>
+          {isVerifica ? (
+            <Icon name="users" size={18} color={theme.colors.textLight} />
+          ) : (
+            <Text style={[styles.slotCount, isFull && styles.slotCountFull]}>
+              {bookedCount}/{slot.max_students}
+            </Text>
+          )}
           {isBooked && (
             <View style={styles.bookedBadge}>
               <Icon name="check" size={12} color="white" />
@@ -114,18 +240,75 @@ const Calendar = () => {
     );
   };
 
+  const goToToday = () => {
+    const today = new Date();
+    setSelectedDate(today);
+    const todayIndex = days.findIndex(d => formatDateKey(d) === formatDateKey(today));
+    if (todayIndex >= 0 && dayListRef.current) {
+      dayListRef.current.scrollToIndex({ index: todayIndex, animated: true, viewPosition: 0.3 });
+    }
+  };
+
   return (
     <ScreenWrapper bg={theme.colors.background}>
       <View style={styles.header}>
-        <Text style={styles.title}>Calendario</Text>
-        {profile?.role === 'teacher' && (
-          <Pressable 
-            style={styles.addButton}
-            onPress={() => router.push('/(main)/slot/create')}
-          >
-            <Icon name="plus" size={24} color="white" />
+        <View>
+          <Text style={styles.title}>Calendario</Text>
+          <Pressable onPress={goToToday}>
+            <Text style={styles.monthYear}>{getMonthYear()}</Text>
           </Pressable>
-        )}
+        </View>
+        <View style={styles.headerActions}>
+          {profile?.role === 'teacher' && (
+            <>
+              <Pressable 
+                style={styles.secondaryButton}
+                onPress={() => router.push('/(main)/grades/manage')}
+              >
+                <Icon name="fileText" size={22} color={theme.colors.primary} />
+              </Pressable>
+              <Pressable 
+                style={styles.secondaryButton}
+                onPress={() => router.push('/(main)/attendance')}
+              >
+                <Icon name="clipboard" size={22} color={theme.colors.primary} />
+              </Pressable>
+              <Pressable 
+                style={styles.addButton}
+                onPress={() => router.push('/(main)/slot/create')}
+              >
+                <Icon name="plus" size={24} color="white" />
+              </Pressable>
+            </>
+          )}
+          {profile?.role === 'student' && (
+            <Pressable 
+              style={styles.secondaryButton}
+              onPress={() => router.push('/(main)/grades')}
+            >
+              <Icon name="fileText" size={22} color={theme.colors.primary} />
+            </Pressable>
+          )}
+        </View>
+      </View>
+
+      {/* Day strip */}
+      <View style={styles.dayStrip}>
+        <FlatList
+          ref={dayListRef}
+          data={days}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          renderItem={renderDayItem}
+          keyExtractor={(item) => formatDateKey(item)}
+          contentContainerStyle={styles.dayListContent}
+          getItemLayout={(_, index) => ({
+            length: wp(14),
+            offset: wp(14) * index,
+            index,
+          })}
+          onScrollToIndexFailed={() => {}}
+        />
       </View>
 
       <ScrollView
@@ -136,22 +319,37 @@ const Calendar = () => {
         }
         showsVerticalScrollIndicator={false}
       >
+        {/* Attendance card for students - only on today */}
+        {profile?.role === 'student' && profile?.class_id && isToday(selectedDate) && (
+          <AttendanceCard studentId={profile.id} classId={profile.class_id} />
+        )}
+
         {loading ? (
           <View style={styles.loadingContainer}>
             <Text style={styles.loadingText}>Caricamento...</Text>
           </View>
-        ) : sortedDates.length === 0 ? (
+        ) : selectedSlots.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Icon name="calendar" size={48} color={theme.colors.textLight} />
-            <Text style={styles.emptyText}>Nessun evento in programma</Text>
+            <Text style={styles.emptyText}>Nessun evento per questo giorno</Text>
+            {profile?.role === 'teacher' && (
+              <Pressable 
+                style={styles.emptyButton}
+                onPress={() => router.push('/(main)/slot/create')}
+              >
+                <Text style={styles.emptyButtonText}>+ Crea slot</Text>
+              </Pressable>
+            )}
           </View>
         ) : (
-          sortedDates.map(date => (
-            <View key={date} style={styles.dateSection}>
-              <Text style={styles.dateHeader}>{formatCalendarDate(date)}</Text>
-              {groupedSlots[date].map(renderSlotCard)}
-            </View>
-          ))
+          <View style={styles.slotsContainer}>
+            <Text style={styles.slotsHeader}>
+              {selectedSlots.length} {selectedSlots.length === 1 ? 'evento' : 'eventi'}
+            </Text>
+            {selectedSlots
+              .sort((a, b) => a.start_time.localeCompare(b.start_time))
+              .map(renderSlotCard)}
+          </View>
         )}
       </ScrollView>
     </ScreenWrapper>
@@ -164,14 +362,34 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     paddingHorizontal: wp(5),
-    paddingVertical: hp(2),
+    paddingVertical: hp(1.5),
   },
   title: {
     fontSize: hp(3),
     fontWeight: theme.fonts.bold,
     color: theme.colors.text,
+  },
+  monthYear: {
+    fontSize: hp(2),
+    fontWeight: theme.fonts.semiBold,
+    color: theme.colors.primary,
+    marginTop: hp(0.3),
+    textTransform: 'capitalize',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(2),
+  },
+  secondaryButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: theme.colors.primaryLight + '30',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   addButton: {
     width: 44,
@@ -182,12 +400,70 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     ...theme.shadows.sm,
   },
+  dayStrip: {
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+    paddingBottom: hp(1.5),
+  },
+  dayListContent: {
+    paddingHorizontal: wp(3),
+  },
+  dayItem: {
+    width: wp(12),
+    paddingVertical: hp(1),
+    marginHorizontal: wp(1),
+    alignItems: 'center',
+    borderRadius: theme.radius.md,
+  },
+  dayItemSelected: {
+    backgroundColor: theme.colors.primary,
+  },
+  dayItemToday: {
+    backgroundColor: theme.colors.primaryLight + '30',
+  },
+  dayItemNonWorking: {
+    backgroundColor: theme.colors.gray + '30',
+  },
+  dayName: {
+    fontSize: hp(1.3),
+    color: theme.colors.textLight,
+    marginBottom: hp(0.5),
+    textTransform: 'uppercase',
+  },
+  dayNameSelected: {
+    color: 'white',
+  },
+  dayNameNonWorking: {
+    color: theme.colors.gray,
+  },
+  dayNumber: {
+    fontSize: hp(2),
+    fontWeight: theme.fonts.semiBold,
+    color: theme.colors.text,
+  },
+  dayNumberSelected: {
+    color: 'white',
+  },
+  dayNumberToday: {
+    color: theme.colors.primary,
+  },
+  dayNumberNonWorking: {
+    color: theme.colors.gray,
+  },
+  dotIndicator: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: theme.colors.accent,
+    marginTop: hp(0.5),
+  },
   container: {
     flex: 1,
   },
   content: {
     paddingHorizontal: wp(5),
-    paddingBottom: hp(4),
+    paddingVertical: hp(2),
+    flexGrow: 1,
   },
   loadingContainer: {
     flex: 1,
@@ -203,22 +479,32 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: hp(10),
+    paddingTop: hp(8),
     gap: hp(2),
   },
   emptyText: {
     fontSize: hp(1.8),
     color: theme.colors.textLight,
   },
-  dateSection: {
-    marginBottom: hp(3),
+  emptyButton: {
+    marginTop: hp(1),
+    paddingHorizontal: wp(6),
+    paddingVertical: hp(1.2),
+    backgroundColor: theme.colors.primary,
+    borderRadius: theme.radius.full,
   },
-  dateHeader: {
-    fontSize: hp(1.8),
+  emptyButtonText: {
+    fontSize: hp(1.6),
     fontWeight: theme.fonts.semiBold,
-    color: theme.colors.text,
+    color: 'white',
+  },
+  slotsContainer: {
+    flex: 1,
+  },
+  slotsHeader: {
+    fontSize: hp(1.5),
+    color: theme.colors.textLight,
     marginBottom: hp(1.5),
-    textTransform: 'capitalize',
   },
   slotCard: {
     flexDirection: 'row',
@@ -253,10 +539,15 @@ const styles = StyleSheet.create({
     fontWeight: theme.fonts.semiBold,
     color: theme.colors.text,
   },
+  slotTimeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: wp(1),
+    marginTop: hp(0.3),
+  },
   slotTime: {
     fontSize: hp(1.5),
     color: theme.colors.textLight,
-    marginTop: hp(0.3),
   },
   slotTeacher: {
     fontSize: hp(1.4),
@@ -283,4 +574,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: hp(0.5),
   },
-});
+});                                                             

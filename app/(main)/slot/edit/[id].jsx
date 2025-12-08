@@ -1,48 +1,36 @@
-// app/(main)/slot/create.jsx
+// app/(main)/slot/edit/[id].jsx
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform, Modal } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { hp, wp } from '../../../helpers/common';
-import { theme, slotTypeColors } from '../../../constants/theme';
-import { useAuth } from '../../../contexts/AuthContext';
-import { createSlot } from '../../../services/bookingService';
-import { getTeacherClasses } from '../../../services/userService';
-import { getTeacherSubjects } from '../../../services/subjectService';
-import ScreenWrapper from '../../../components/common/ScreenWrapper';
-import BackButton from '../../../components/common/BackButton';
-import Input from '../../../components/common/Input';
-import Button from '../../../components/common/Button';
-import Icon from '../../../assets/icons/Icon';
+import { hp, wp } from '../../../../helpers/common';
+import { theme, slotTypeColors } from '../../../../constants/theme';
+import { useAuth } from '../../../../contexts/AuthContext';
+import { getSlotById, updateSlot } from '../../../../services/bookingService';
+import { getTeacherClasses } from '../../../../services/userService';
+import { getTeacherSubjects } from '../../../../services/subjectService';
+import ScreenWrapper from '../../../../components/common/ScreenWrapper';
+import BackButton from '../../../../components/common/BackButton';
+import Input from '../../../../components/common/Input';
+import Button from '../../../../components/common/Button';
+import Icon from '../../../../assets/icons/Icon';
 
 // Formatta automaticamente l'orario con ":"
 const formatTimeInput = (text) => {
-  // Rimuovi tutto tranne i numeri
   const numbers = text.replace(/[^\d]/g, '');
-  
-  // Limita a 4 cifre
   const limited = numbers.slice(0, 4);
-  
-  // Inserisci ":" dopo le prime 2 cifre
   if (limited.length > 2) {
     return `${limited.slice(0, 2)}:${limited.slice(2)}`;
   }
   return limited;
 };
 
-// Festività italiane fisse (mese 0-indexed)
+// Festività italiane fisse
 const HOLIDAYS = [
-  { day: 1, month: 0 },   // Capodanno
-  { day: 6, month: 0 },   // Epifania
-  { day: 25, month: 3 },  // Liberazione
-  { day: 1, month: 4 },   // Festa Lavoratori
-  { day: 2, month: 5 },   // Festa Repubblica
-  { day: 15, month: 7 },  // Ferragosto
-  { day: 1, month: 10 },  // Ognissanti
-  { day: 8, month: 11 },  // Immacolata
-  { day: 25, month: 11 }, // Natale
-  { day: 26, month: 11 }, // Santo Stefano
+  { day: 1, month: 0 }, { day: 6, month: 0 }, { day: 25, month: 3 },
+  { day: 1, month: 4 }, { day: 2, month: 5 }, { day: 15, month: 7 },
+  { day: 1, month: 10 }, { day: 8, month: 11 }, { day: 25, month: 11 }, { day: 26, month: 11 },
 ];
 
 const isHoliday = (date) => {
@@ -52,7 +40,6 @@ const isHoliday = (date) => {
 };
 
 const isSunday = (date) => date.getDay() === 0;
-
 const isNonWorkingDay = (date) => isSunday(date) || isHoliday(date);
 
 const SLOT_TYPES = [
@@ -61,11 +48,13 @@ const SLOT_TYPES = [
   { value: 'altro', label: 'Altro', icon: 'calendar' },
 ];
 
-const CreateSlot = () => {
+const EditSlot = () => {
+  const { id } = useLocalSearchParams();
   const router = useRouter();
   const { profile } = useAuth();
   const { bottom } = useSafeAreaInsets();
   
+  const [originalSlot, setOriginalSlot] = useState(null);
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [type, setType] = useState('interrogazione');
   const [date, setDate] = useState(new Date());
@@ -80,8 +69,8 @@ const CreateSlot = () => {
   const [subjects, setSubjects] = useState([]);
   const [showSubjectPicker, setShowSubjectPicker] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingData, setLoadingData] = useState(true);
 
-  // Raggruppa classi per anno
   const getYears = () => {
     const years = [...new Set(classes.map(c => c.name.charAt(0)))].sort();
     return years;
@@ -93,28 +82,61 @@ const CreateSlot = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [id]);
 
   const loadData = async () => {
-    if (!profile?.id) return;
+    if (!profile?.id || !id) return;
     
-    const [classesRes, subjectsRes] = await Promise.all([
+    setLoadingData(true);
+    
+    const [slotRes, classesRes, subjectsRes] = await Promise.all([
+      getSlotById(id),
       getTeacherClasses(profile.id),
       getTeacherSubjects(profile.id)
     ]);
     
+    // Estrai le classi dalla relazione teacher_classes
+    let teacherClasses = [];
     if (classesRes.data) {
-      // Estrai le classi dalla relazione teacher_classes
-      const teacherClasses = classesRes.data
+      teacherClasses = classesRes.data
         .filter(tc => tc.class)
         .map(tc => tc.class);
       setClasses(teacherClasses);
     }
+    
     if (subjectsRes.data) {
       const subs = subjectsRes.data.map(ts => ts.subject).filter(Boolean);
       setSubjects(subs);
-      if (subs.length === 1) setSelectedSubject(subs[0]);
     }
+    
+    if (slotRes.data) {
+      const slot = slotRes.data;
+      setOriginalSlot(slot);
+      setType(slot.type);
+      setDate(new Date(slot.date));
+      setStartTime(slot.start_time?.slice(0, 5) || '');
+      setEndTime(slot.end_time?.slice(0, 5) || '');
+      setMaxStudents(String(slot.max_students || 1));
+      setDescription(slot.description || '');
+      setSelectedClass(slot.class_id);
+      
+      // Set year from class
+      const slotClass = teacherClasses.find(c => c.id === slot.class_id);
+      if (slotClass) {
+        setSelectedYear(slotClass.name.charAt(0));
+      }
+      
+      // Find subject in teacher subjects
+      if (subjectsRes.data) {
+        const subs = subjectsRes.data.map(ts => ts.subject).filter(Boolean);
+        const matchingSubject = subs.find(s => s.name === slot.subject);
+        if (matchingSubject) {
+          setSelectedSubject(matchingSubject);
+        }
+      }
+    }
+    
+    setLoadingData(false);
   };
 
   const onDateChange = (event, selectedDate) => {
@@ -145,15 +167,6 @@ const CreateSlot = () => {
     return d.toISOString().split('T')[0];
   };
 
-  // Se la data iniziale è un giorno non lavorativo, trova il prossimo giorno valido
-  useEffect(() => {
-    let currentDate = new Date();
-    while (isNonWorkingDay(currentDate)) {
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-    setDate(currentDate);
-  }, []);
-
   const validateForm = () => {
     if (!selectedSubject) {
       Alert.alert('Errore', 'Seleziona la materia');
@@ -178,8 +191,7 @@ const CreateSlot = () => {
     if (!validateForm()) return;
 
     setLoading(true);
-    const { data, error } = await createSlot({
-      teacher_id: profile.id,
+    const { data, error } = await updateSlot(id, {
       class_id: selectedClass,
       subject: selectedSubject.name,
       type,
@@ -194,17 +206,27 @@ const CreateSlot = () => {
     if (error) {
       Alert.alert('Errore', error.message);
     } else {
-      Alert.alert('Successo', 'Slot creato con successo', [
+      Alert.alert('Successo', 'Slot aggiornato', [
         { text: 'OK', onPress: () => router.back() }
       ]);
     }
   };
 
+  if (loadingData) {
+    return (
+      <ScreenWrapper bg={theme.colors.background}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Caricamento...</Text>
+        </View>
+      </ScreenWrapper>
+    );
+  }
+
   return (
     <ScreenWrapper bg={theme.colors.background}>
       <View style={styles.header}>
         <BackButton router={router} />
-        <Text style={styles.headerTitle}>Nuovo Slot</Text>
+        <Text style={styles.headerTitle}>Modifica Slot</Text>
         <View style={{ width: 36 }} />
       </View>
 
@@ -218,7 +240,7 @@ const CreateSlot = () => {
           <Text style={styles.label}>Materia *</Text>
           {subjects.length === 0 ? (
             <Text style={styles.noSubjects}>
-              Nessuna materia configurata. Vai in Profilo per aggiungere le tue materie.
+              Nessuna materia configurata.
             </Text>
           ) : subjects.length === 1 ? (
             <View style={styles.singleSubject}>
@@ -273,73 +295,55 @@ const CreateSlot = () => {
         <View style={styles.section}>
           <Text style={styles.label}>Classe *</Text>
           
-          {classes.length === 0 ? (
-            <Pressable 
-              style={styles.noClassesContainer}
-              onPress={() => router.push('/(main)/classes')}
-            >
-              <Text style={styles.noClassesText}>
-                Nessuna classe configurata.
-              </Text>
-              <Text style={styles.noClassesLink}>
-                Vai a "Le mie classi" per selezionarle →
-              </Text>
-            </Pressable>
-          ) : (
-            <>
-              {/* Selezione anno */}
-              <View style={styles.yearRow}>
-                {getYears().map((year) => (
-                  <Pressable
-                    key={year}
-                    style={[
-                      styles.yearCard,
-                      selectedYear === year && styles.yearCardSelected
-                    ]}
-                    onPress={() => {
-                      setSelectedYear(year === selectedYear ? null : year);
-                      if (year !== selectedYear) setSelectedClass(null);
-                    }}
-                  >
-                    <Text style={[
-                      styles.yearText,
-                      selectedYear === year && styles.yearTextSelected
-                    ]}>
-                      {year}°
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-
-              {/* Selezione sezione */}
-              {selectedYear && (
-                <View style={styles.sectionRow}>
-                  {getSectionsForYear(selectedYear).map((c) => (
-                    <Pressable
-                      key={c.id}
-                      style={[
-                        styles.sectionCard,
-                        selectedClass === c.id && styles.sectionCardSelected
-                      ]}
-                      onPress={() => setSelectedClass(c.id)}
-                    >
-                      <Text style={[
-                        styles.sectionText,
-                        selectedClass === c.id && styles.sectionTextSelected
-                      ]}>
-                        {c.name.slice(1)}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </View>
-              )}
-
-              {selectedClass && (
-                <Text style={styles.selectedClassText}>
-                  Classe selezionata: {classes.find(c => c.id === selectedClass)?.name}
+          <View style={styles.yearRow}>
+            {getYears().map((year) => (
+              <Pressable
+                key={year}
+                style={[
+                  styles.yearCard,
+                  selectedYear === year && styles.yearCardSelected
+                ]}
+                onPress={() => {
+                  setSelectedYear(year === selectedYear ? null : year);
+                  if (year !== selectedYear) setSelectedClass(null);
+                }}
+              >
+                <Text style={[
+                  styles.yearText,
+                  selectedYear === year && styles.yearTextSelected
+                ]}>
+                  {year}°
                 </Text>
-              )}
-            </>
+              </Pressable>
+            ))}
+          </View>
+
+          {selectedYear && (
+            <View style={styles.sectionRow}>
+              {getSectionsForYear(selectedYear).map((c) => (
+                <Pressable
+                  key={c.id}
+                  style={[
+                    styles.sectionCard,
+                    selectedClass === c.id && styles.sectionCardSelected
+                  ]}
+                  onPress={() => setSelectedClass(c.id)}
+                >
+                  <Text style={[
+                    styles.sectionText,
+                    selectedClass === c.id && styles.sectionTextSelected
+                  ]}>
+                    {c.name.slice(1)}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
+
+          {selectedClass && (
+            <Text style={styles.selectedClassText}>
+              Classe selezionata: {classes.find(c => c.id === selectedClass)?.name}
+            </Text>
           )}
         </View>
 
@@ -390,7 +394,7 @@ const CreateSlot = () => {
           </View>
         </View>
 
-        {/* Posti - solo per interrogazione */}
+        {/* Posti - solo per non-verifica */}
         {type !== 'verifica' && (
           <View style={styles.section}>
             <Text style={styles.label}>Posti disponibili</Text>
@@ -418,7 +422,7 @@ const CreateSlot = () => {
       {/* Footer fisso */}
       <View style={[styles.footer, { paddingBottom: hp(2) + bottom }]}>
         <Button
-          title="Crea Slot"
+          title="Salva Modifiche"
           loading={loading}
           onPress={handleSubmit}
         />
@@ -466,7 +470,7 @@ const CreateSlot = () => {
   );
 };
 
-export default CreateSlot;
+export default EditSlot;
 
 const styles = StyleSheet.create({
   header: {
@@ -487,6 +491,15 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: wp(5),
     paddingBottom: hp(2),
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: hp(1.8),
+    color: theme.colors.textLight,
   },
   section: {
     marginBottom: hp(2.5),
@@ -561,23 +574,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: wp(2),
     marginBottom: hp(1.5),
-  },
-  noClassesContainer: {
-    backgroundColor: theme.colors.card,
-    padding: hp(2),
-    borderRadius: theme.radius.md,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-  },
-  noClassesText: {
-    fontSize: hp(1.6),
-    color: theme.colors.textLight,
-    marginBottom: hp(0.5),
-  },
-  noClassesLink: {
-    fontSize: hp(1.6),
-    color: theme.colors.primary,
-    fontWeight: theme.fonts.semiBold,
   },
   yearCard: {
     width: wp(12),

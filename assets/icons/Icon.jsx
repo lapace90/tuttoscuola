@@ -18,6 +18,7 @@ const iconMap = {
   
   // Actions
   check: { lib: 'feather', name: 'check' },
+  x: { lib: 'feather', name: 'x' },
   plus: { lib: 'feather', name: 'plus' },
   edit: { lib: 'feather', name: 'edit-2' },
   trash: { lib: 'feather', name: 'trash-2' },
@@ -48,6 +49,7 @@ const iconMap = {
   bell: { lib: 'feather', name: 'bell' },
   mic: { lib: 'feather', name: 'mic' },
   clipboard: { lib: 'feather', name: 'clipboard' },
+  file: { lib: 'feather', name: 'file' },
   fileText: { lib: 'feather', name: 'file-text' },
   chevronDown: { lib: 'feather', name: 'chevron-down' },
   

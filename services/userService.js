@@ -112,3 +112,47 @@ export const searchUsers = async (query, instituteId) => {
 
   return { data, error };
 };
+
+/**
+ * Get teacher's classes
+ */
+export const getTeacherClasses = async (teacherId) => {
+  const { data, error } = await supabase
+    .from('teacher_classes')
+    .select(`
+      id,
+      class:classes(id, name)
+    `)
+    .eq('teacher_id', teacherId)
+    .order('class(name)');
+
+  return { data, error };
+};
+
+/**
+ * Add class to teacher
+ */
+export const addTeacherClass = async (teacherId, classId) => {
+  const { data, error } = await supabase
+    .from('teacher_classes')
+    .insert({ teacher_id: teacherId, class_id: classId })
+    .select(`
+      id,
+      class:classes(id, name)
+    `)
+    .single();
+
+  return { data, error };
+};
+
+/**
+ * Remove class from teacher
+ */
+export const removeTeacherClass = async (teacherClassId) => {
+  const { error } = await supabase
+    .from('teacher_classes')
+    .delete()
+    .eq('id', teacherClassId);
+
+  return { error };
+};

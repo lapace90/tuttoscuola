@@ -35,8 +35,9 @@ const SlotDetail = () => {
   };
 
   const confirmedBookings = slot?.bookings?.filter(b => b.status === 'confirmed') || [];
+  const isVerifica = slot?.type === 'verifica';
   const isBooked = confirmedBookings.some(b => b.student_id === profile?.id);
-  const isFull = confirmedBookings.length >= (slot?.max_students || 0);
+  const isFull = !isVerifica && confirmedBookings.length >= (slot?.max_students || 0);
   const isOwner = slot?.teacher_id === profile?.id;
 
   const handleBook = async () => {
@@ -132,9 +133,14 @@ const SlotDetail = () => {
       <View style={styles.header}>
         <BackButton router={router} />
         {isOwner && (
-          <Pressable style={styles.deleteButton} onPress={handleDeleteSlot}>
-            <Icon name="trash" size={22} color={theme.colors.error} />
-          </Pressable>
+          <View style={styles.headerActions}>
+            <Pressable style={styles.editButton} onPress={() => router.push(`/(main)/slot/edit/${id}`)}>
+              <Icon name="edit" size={22} color={theme.colors.primary} />
+            </Pressable>
+            <Pressable style={styles.deleteButton} onPress={handleDeleteSlot}>
+              <Icon name="trash" size={22} color={theme.colors.error} />
+            </Pressable>
+          </View>
         )}
       </View>
 
@@ -172,12 +178,20 @@ const SlotDetail = () => {
             </View>
           )}
 
-          <View style={styles.infoRow}>
-            <Icon name="users" size={20} color={theme.colors.textLight} />
-            <Text style={styles.infoText}>
-              {confirmedBookings.length}/{slot.max_students} posti occupati
-            </Text>
-          </View>
+          {!isVerifica && (
+            <View style={styles.infoRow}>
+              <Icon name="users" size={20} color={theme.colors.textLight} />
+              <Text style={styles.infoText}>
+                {confirmedBookings.length}/{slot.max_students} posti occupati
+              </Text>
+            </View>
+          )}
+          {isVerifica && (
+            <View style={styles.infoRow}>
+              <Icon name="users" size={20} color={theme.colors.textLight} />
+              <Text style={styles.infoText}>Tutta la classe</Text>
+            </View>
+          )}
         </View>
 
         {slot.description && (
@@ -243,6 +257,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: wp(5),
     paddingVertical: hp(1.5),
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: wp(2),
+  },
+  editButton: {
+    padding: 8,
   },
   deleteButton: {
     padding: 8,

@@ -97,6 +97,45 @@ const Profile = () => {
             </Pressable>
           )}
 
+          {profile?.role === 'teacher' && (
+            <Pressable 
+              style={styles.menuItem}
+              onPress={() => router.push('/(main)/classes')}
+            >
+              <View style={styles.menuIcon}>
+                <Icon name="users" size={22} color={theme.colors.text} />
+              </View>
+              <Text style={styles.menuText}>Le mie classi</Text>
+              <Icon name="chevronRight" size={20} color={theme.colors.textLight} />
+            </Pressable>
+          )}
+
+          {profile?.role === 'teacher' && (
+            <Pressable 
+              style={styles.menuItem}
+              onPress={() => router.push('/(main)/grades/manage')}
+            >
+              <View style={styles.menuIcon}>
+                <Icon name="fileText" size={22} color={theme.colors.text} />
+              </View>
+              <Text style={styles.menuText}>Registro voti</Text>
+              <Icon name="chevronRight" size={20} color={theme.colors.textLight} />
+            </Pressable>
+          )}
+
+          {profile?.role === 'student' && (
+            <Pressable 
+              style={styles.menuItem}
+              onPress={() => router.push('/(main)/grades')}
+            >
+              <View style={styles.menuIcon}>
+                <Icon name="fileText" size={22} color={theme.colors.text} />
+              </View>
+              <Text style={styles.menuText}>I miei voti</Text>
+              <Icon name="chevronRight" size={20} color={theme.colors.textLight} />
+            </Pressable>
+          )}
+
           <Pressable style={styles.menuItem}>
             <View style={styles.menuIcon}>
               <Icon name="bell" size={22} color={theme.colors.text} />
