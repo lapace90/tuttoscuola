@@ -54,7 +54,17 @@ const TabsLayout = () => {
           ),
         }}
       />
+    <Tabs.Screen
+      name="notifications"
+      options={{
+        title: 'Notifiche',
+        tabBarIcon: ({ color, size }) => (
+          <Icon name="bell" size={size} color={color} />
+        ),  
+      }}
+    />
     </Tabs>
+
   );
 };
 

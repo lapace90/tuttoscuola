@@ -48,7 +48,7 @@ const ChatDetail = () => {
   const loadChatInfo = async () => {
     const { data } = await getChatMembers(id);
     if (data) {
-      const otherMember = data.find(m => m.user_id !== profile.id);
+      const otherMember = data.find(m => m.user?.id !== profile.id);
       setChatInfo({ members: data, otherMember: otherMember?.user });
     }
   };

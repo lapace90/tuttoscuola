@@ -76,7 +76,10 @@ const Profile = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account</Text>
           
-          <Pressable style={styles.menuItem}>
+          <Pressable 
+            style={styles.menuItem}
+            onPress={() => router.push('/(main)/profile/edit')}
+          >
             <View style={styles.menuIcon}>
               <Icon name="user" size={22} color={theme.colors.text} />
             </View>
@@ -136,11 +139,25 @@ const Profile = () => {
             </Pressable>
           )}
 
-          <Pressable style={styles.menuItem}>
+          <Pressable 
+            style={styles.menuItem}
+            onPress={() => router.push('/(main)/homework')}
+          >
+            <View style={styles.menuIcon}>
+              <Icon name="book" size={22} color={theme.colors.text} />
+            </View>
+            <Text style={styles.menuText}>Compiti</Text>
+            <Icon name="chevronRight" size={20} color={theme.colors.textLight} />
+          </Pressable>
+
+          <Pressable 
+            style={styles.menuItem}
+            onPress={() => router.push('/(main)/announcements')}
+          >
             <View style={styles.menuIcon}>
               <Icon name="bell" size={22} color={theme.colors.text} />
             </View>
-            <Text style={styles.menuText}>Notifiche</Text>
+            <Text style={styles.menuText}>Comunicazioni</Text>
             <Icon name="chevronRight" size={20} color={theme.colors.textLight} />
           </Pressable>
         </View>
@@ -148,7 +165,10 @@ const Profile = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Supporto</Text>
           
-          <Pressable style={styles.menuItem}>
+          <Pressable 
+            style={styles.menuItem}
+            onPress={() => router.push('/(main)/about')}
+          >
             <View style={styles.menuIcon}>
               <Icon name="info" size={22} color={theme.colors.text} />
             </View>

@@ -9,7 +9,7 @@ export const getUserById = async (userId) => {
     .from('users')
     .select(`
       *,
-      class:classes(id, name, year),
+      class:classes(id, name, year, institute_id),
       institute:institutes(id, name)
     `)
     .eq('id', userId)
@@ -89,7 +89,7 @@ export const getUsersByClass = async (classId) => {
 export const getTeachers = async (instituteId) => {
   const { data, error } = await supabase
     .from('users')
-    .select('id, first_name, last_name, avatar_url')
+    .select('id, first_name, last_name, role, avatar_url')
     .eq('institute_id', instituteId)
     .eq('role', 'teacher')
     .eq('onboarding_completed', true)

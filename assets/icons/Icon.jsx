@@ -47,11 +47,18 @@ const iconMap = {
   book: { lib: 'feather', name: 'book' },
   bookOpen: { lib: 'feather', name: 'book-open' },
   bell: { lib: 'feather', name: 'bell' },
+  bellRing: { lib: 'feather', name: 'bell' }, // Feather non ha bell-ring, usa bell
   mic: { lib: 'feather', name: 'mic' },
   clipboard: { lib: 'feather', name: 'clipboard' },
   file: { lib: 'feather', name: 'file' },
   fileText: { lib: 'feather', name: 'file-text' },
   chevronDown: { lib: 'feather', name: 'chevron-down' },
+  chevronUp: { lib: 'feather', name: 'chevron-up' },
+  camera: { lib: 'feather', name: 'camera' },
+  image: { lib: 'feather', name: 'image' },
+  globe: { lib: 'feather', name: 'globe' },
+  hash: { lib: 'feather', name: 'hash' },
+  briefcase: { lib: 'feather', name: 'briefcase' },
   
   // Material Icons (per icone non disponibili in Feather)
   school: { lib: 'material', name: 'school' },

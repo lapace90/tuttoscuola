@@ -27,7 +27,14 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "L'app accede alle tue foto per impostare l'avatar del profilo.",
+          "cameraPermission": "L'app accede alla fotocamera per scattare foto profilo."
+        }
+      ]
     ]
   }
 }
