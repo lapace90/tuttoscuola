@@ -100,3 +100,4 @@ The app uses a relational database with the following main tables:
 
 ## License
 
+MIT
