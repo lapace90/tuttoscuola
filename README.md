@@ -97,6 +97,3 @@ The app uses a relational database with the following main tables:
    ```bash
    npx expo start
    ```
-
-## License
-

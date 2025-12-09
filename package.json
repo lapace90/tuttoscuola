@@ -16,6 +16,7 @@
     "dotenv": "^17.2.3",
     "expo": "~54.0.27",
     "expo-image": "~3.0.11",
+    "expo-image-manipulator": "~14.0.8",
     "expo-image-picker": "~17.0.9",
     "expo-linking": "~8.0.10",
     "expo-router": "~6.0.17",

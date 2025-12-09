@@ -1,3 +1,4 @@
+// app/(main)/profile/edit.jsx
 import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, Alert } from 'react-native';
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
@@ -11,6 +12,7 @@ import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import BackButton from '../../../components/common/BackButton';
 import Button from '../../../components/common/Button';
 import Avatar from '../../../components/common/Avatar';
+import ImageCropper from '../../../components/common/ImageCropper';
 import Icon from '../../../assets/icons/Icon';
 
 const EditProfile = () => {
@@ -22,6 +24,10 @@ const EditProfile = () => {
   const [avatar, setAvatar] = useState(profile?.avatar_url || null);
   const [newAvatarUri, setNewAvatarUri] = useState(null);
   const [saving, setSaving] = useState(false);
+  
+  // Cropper state
+  const [showCropper, setShowCropper] = useState(false);
+  const [tempImageUri, setTempImageUri] = useState(null);
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -33,15 +39,26 @@ const EditProfile = () => {
 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.7,
+      allowsEditing: false,
+      quality: 1,
     });
 
     if (!result.canceled && result.assets[0]) {
-      setNewAvatarUri(result.assets[0].uri);
-      setAvatar(result.assets[0].uri);
+      setTempImageUri(result.assets[0].uri);
+      setShowCropper(true);
     }
+  };
+
+  const handleCrop = (croppedUri) => {
+    setNewAvatarUri(croppedUri);
+    setAvatar(croppedUri);
+    setShowCropper(false);
+    setTempImageUri(null);
+  };
+
+  const handleCancelCrop = () => {
+    setShowCropper(false);
+    setTempImageUri(null);
   };
 
   const handleSave = async () => {
@@ -172,6 +189,14 @@ const EditProfile = () => {
           buttonStyle={{ marginTop: hp(3) }}
         />
       </ScrollView>
+
+      <ImageCropper
+        visible={showCropper}
+        imageUri={tempImageUri}
+        onCrop={handleCrop}
+        onCancel={handleCancelCrop}
+        cropShape="circle"
+      />
     </ScreenWrapper>
   );
 };

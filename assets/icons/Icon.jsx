@@ -1,4 +1,3 @@
-// assets/icons/Icon.jsx
 import React from 'react';
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 
@@ -59,6 +58,7 @@ const iconMap = {
   globe: { lib: 'feather', name: 'globe' },
   hash: { lib: 'feather', name: 'hash' },
   briefcase: { lib: 'feather', name: 'briefcase' },
+  refresh: { lib: 'feather', name: 'rotate-ccw' },
   
   // Material Icons (per icone non disponibili in Feather)
   school: { lib: 'material', name: 'school' },
