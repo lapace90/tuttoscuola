@@ -156,3 +156,61 @@ export const removeTeacherClass = async (teacherClassId) => {
 
   return { error };
 };
+
+/**
+ * Update user profile (alias for updateUser)
+ */
+export const updateUserProfile = updateUser;
+
+/**
+ * Upload avatar to Supabase Storage
+ */
+export const uploadAvatar = async (userId, imageUri) => {
+  try {
+    const fileExt = imageUri.split('.').pop().toLowerCase();
+    const fileName = `${userId}/avatar_${Date.now()}.${fileExt}`;
+
+    // Convert URI to blob
+    const response = await fetch(imageUri);
+    const blob = await response.blob();
+    const arrayBuffer = await new Response(blob).arrayBuffer();
+
+    // Delete old avatar first
+    const { data: oldUser } = await supabase
+      .from('users')
+      .select('avatar_url')
+      .eq('id', userId)
+      .single();
+
+    if (oldUser?.avatar_url) {
+      try {
+        const oldPath = oldUser.avatar_url.split('/avatars/')[1];
+        if (oldPath) {
+          await supabase.storage.from('avatars').remove([oldPath]);
+        }
+      } catch (e) {
+        console.log('Old avatar deletion failed (non-critical):', e);
+      }
+    }
+
+    // Upload new avatar
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(fileName, arrayBuffer, {
+        contentType: `image/${fileExt === 'jpg' ? 'jpeg' : fileExt}`,
+        upsert: false
+      });
+
+    if (uploadError) throw uploadError;
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(fileName);
+
+    return { data: urlData.publicUrl, error: null };
+  } catch (error) {
+    console.error('Upload avatar error:', error);
+    return { data: null, error };
+  }
+};

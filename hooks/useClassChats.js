@@ -13,14 +13,18 @@ export const useClassChats = () => {
   const isTeacher = profile?.role === 'teacher';
 
   const loadClassChats = useCallback(async () => {
-    if (!profile?.id) return;
+    if (!profile?.id) {
+      console.log('❌ No profile id');
+      return;
+    }
 
+    console.log('🔍 Loading class chats for:', profile.id, 'role:', profile.role);
     const chatsData = [];
 
     if (isStudent && profile?.class_id) {
-      // Students: get their single class chat
       const className = profile?.class?.name || '';
-      const { data } = await getOrCreateClassChat(profile.class_id, className, profile.id);
+      const { data, error } = await getOrCreateClassChat(profile.class_id, className, profile.id);
+      console.log('📚 Student chat:', data, 'Error:', error);
       
       if (data) {
         chatsData.push({
@@ -30,13 +34,15 @@ export const useClassChats = () => {
         });
       }
     } else if (isTeacher) {
-      // Teachers: get all their class chats
-      const { data: teacherClasses } = await getTeacherClasses(profile.id);
+      const { data: teacherClasses, error: tcError } = await getTeacherClasses(profile.id);
+      console.log('📚 Teacher classes:', teacherClasses, 'Error:', tcError);
       
       if (teacherClasses) {
         for (const tc of teacherClasses) {
           if (tc.class) {
-            const { data } = await getOrCreateClassChat(tc.class.id, tc.class.name, profile.id);
+            console.log('🏫 Getting chat for class:', tc.class.id, tc.class.name);
+            const { data, error } = await getOrCreateClassChat(tc.class.id, tc.class.name, profile.id);
+            console.log('💬 Chat result:', data, 'Error:', error);
             
             if (data) {
               chatsData.push({
@@ -48,8 +54,11 @@ export const useClassChats = () => {
           }
         }
       }
+    } else {
+      console.log('❌ Not student or teacher:', profile.role);
     }
 
+    console.log('✅ Final chats:', chatsData.length);
     setClassChats(chatsData);
     setLoading(false);
   }, [profile?.id, profile?.class_id, profile?.class?.name, isStudent, isTeacher]);

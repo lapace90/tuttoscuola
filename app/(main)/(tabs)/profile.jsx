@@ -6,6 +6,7 @@ import { hp, wp } from '../../../helpers/common';
 import { theme, roleColors } from '../../../constants/theme';
 import { useAuth } from '../../../contexts/AuthContext';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
+import Avatar from '../../../components/common/Avatar';
 import Icon from '../../../assets/icons/Icon';
 
 const Profile = () => {
@@ -30,11 +31,6 @@ const Profile = () => {
     );
   };
 
-  const getInitials = () => {
-    if (!profile?.first_name) return '?';
-    return `${profile.first_name[0]}${profile.last_name?.[0] || ''}`.toUpperCase();
-  };
-
   const getRoleLabel = () => {
     switch (profile?.role) {
       case 'teacher': return 'Professore';
@@ -52,9 +48,13 @@ const Profile = () => {
       >
         <View style={styles.header}>
           <View style={styles.avatarContainer}>
-            <View style={[styles.avatar, { borderColor: roleColors[profile?.role] || theme.colors.primary }]}>
-              <Text style={styles.avatarText}>{getInitials()}</Text>
-            </View>
+            <Avatar
+              uri={profile?.avatar_url}
+              firstName={profile?.first_name}
+              lastName={profile?.last_name}
+              size={wp(28)}
+              style={[styles.avatar, { borderColor: roleColors[profile?.role] || theme.colors.primary }]}
+            />
             <View style={[styles.roleBadge, { backgroundColor: roleColors[profile?.role] || theme.colors.primary }]}>
               <Text style={styles.roleText}>{getRoleLabel()}</Text>
             </View>
@@ -160,6 +160,17 @@ const Profile = () => {
             <Text style={styles.menuText}>Comunicazioni</Text>
             <Icon name="chevronRight" size={20} color={theme.colors.textLight} />
           </Pressable>
+
+          <Pressable 
+            style={styles.menuItem}
+            onPress={() => router.push('/(main)/notifications')}
+          >
+            <View style={styles.menuIcon}>
+              <Icon name="bell" size={22} color={theme.colors.text} />
+            </View>
+            <Text style={styles.menuText}>Notifiche</Text>
+            <Icon name="chevronRight" size={20} color={theme.colors.textLight} />
+          </Pressable>
         </View>
 
         <View style={styles.section}>
@@ -207,19 +218,8 @@ const styles = StyleSheet.create({
     marginBottom: hp(2),
   },
   avatar: {
-    width: wp(28),
-    height: wp(28),
-    borderRadius: wp(14),
-    backgroundColor: theme.colors.card,
-    justifyContent: 'center',
-    alignItems: 'center',
     borderWidth: 3,
     ...theme.shadows.md,
-  },
-  avatarText: {
-    fontSize: hp(4),
-    fontWeight: theme.fonts.bold,
-    color: theme.colors.text,
   },
   roleBadge: {
     position: 'absolute',

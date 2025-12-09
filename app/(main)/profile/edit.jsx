@@ -11,6 +11,7 @@ import { updateUserProfile, uploadAvatar } from '../../../services/userService';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import BackButton from '../../../components/common/BackButton';
 import Button from '../../../components/common/Button';
+import Avatar from '../../../components/common/Avatar';
 import Icon from '../../../assets/icons/Icon';
 
 const EditProfile = () => {
@@ -19,7 +20,6 @@ const EditProfile = () => {
   
   const [firstName, setFirstName] = useState(profile?.first_name || '');
   const [lastName, setLastName] = useState(profile?.last_name || '');
-  const [phone, setPhone] = useState(profile?.phone || '');
   const [avatar, setAvatar] = useState(profile?.avatar_url || null);
   const [newAvatarUri, setNewAvatarUri] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -33,7 +33,7 @@ const EditProfile = () => {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.7,
@@ -67,7 +67,6 @@ const EditProfile = () => {
       const { error } = await updateUserProfile(profile.id, {
         first_name: firstName.trim(),
         last_name: lastName.trim(),
-        phone: phone.trim() || null,
         avatar_url: avatarUrl
       });
 
@@ -80,12 +79,6 @@ const EditProfile = () => {
     } finally {
       setSaving(false);
     }
-  };
-
-  const getInitials = () => {
-    const f = firstName?.charAt(0) || '';
-    const l = lastName?.charAt(0) || '';
-    return (f + l).toUpperCase() || '?';
   };
 
   return (
@@ -107,9 +100,11 @@ const EditProfile = () => {
             {avatar ? (
               <Image source={{ uri: avatar }} style={styles.avatar} />
             ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarInitials}>{getInitials()}</Text>
-              </View>
+              <Avatar
+                firstName={firstName}
+                lastName={lastName}
+                size={120}
+              />
             )}
             <View style={styles.editBadge}>
               <Icon name="camera" size={16} color="white" />
@@ -139,18 +134,6 @@ const EditProfile = () => {
               onChangeText={setLastName}
               placeholder="Il tuo cognome"
               placeholderTextColor={theme.colors.placeholder}
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Telefono</Text>
-            <TextInput
-              style={styles.input}
-              value={phone}
-              onChangeText={setPhone}
-              placeholder="+39 123 456 7890"
-              placeholderTextColor={theme.colors.placeholder}
-              keyboardType="phone-pad"
             />
           </View>
 
@@ -227,19 +210,6 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-  },
-  avatarPlaceholder: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: theme.colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarInitials: {
-    fontSize: hp(4),
-    fontWeight: theme.fonts.bold,
-    color: 'white',
   },
   editBadge: {
     position: 'absolute',

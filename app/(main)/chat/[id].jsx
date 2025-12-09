@@ -2,12 +2,14 @@
 import { View, Text, StyleSheet, FlatList, TextInput, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { hp, wp, formatTime } from '../../../helpers/common';
 import { theme } from '../../../constants/theme';
 import { useAuth } from '../../../contexts/AuthContext';
 import { getChatMessages, sendMessage, subscribeToMessages, getChatMembers } from '../../../services/chatService';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import BackButton from '../../../components/common/BackButton';
+import Avatar from '../../../components/common/Avatar';
 import Icon from '../../../assets/icons/Icon';
 
 const ChatDetail = () => {
@@ -20,6 +22,7 @@ const ChatDetail = () => {
   const [sending, setSending] = useState(false);
   const [chatInfo, setChatInfo] = useState(null);
   const flatListRef = useRef(null);
+  const { bottom } = useSafeAreaInsets();
 
   useEffect(() => {
     if (id && profile?.id) {
@@ -108,12 +111,22 @@ const ChatDetail = () => {
   };
 
   return (
-    <ScreenWrapper bg={theme.colors.background}>
+    <ScreenWrapper bg={theme.colors.background} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <BackButton router={router} />
-        <Text style={styles.headerTitle} numberOfLines={1}>
-          {getChatTitle()}
-        </Text>
+        <View style={styles.headerCenter}>
+          {chatInfo?.otherMember && (
+            <Avatar
+              uri={chatInfo.otherMember.avatar_url}
+              firstName={chatInfo.otherMember.first_name}
+              lastName={chatInfo.otherMember.last_name}
+              size={36}
+            />
+          )}
+          <Text style={styles.headerTitle} numberOfLines={1}>
+            {getChatTitle()}
+          </Text>
+        </View>
         <View style={styles.headerRight} />
       </View>
 
@@ -127,7 +140,7 @@ const ChatDetail = () => {
           data={messages}
           keyExtractor={(item) => item.id}
           renderItem={renderMessage}
-          contentContainerStyle={styles.messagesList}
+          contentContainerStyle={[styles.listContent, { paddingBottom: bottom + 80 }]}
           onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
@@ -172,13 +185,18 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
   },
-  headerTitle: {
+  headerCenter: {
     flex: 1,
-    fontSize: hp(2.2),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: wp(2),
+    marginHorizontal: wp(2),
+  },
+  headerTitle: {
+    fontSize: hp(2),
     fontWeight: theme.fonts.semiBold,
     color: theme.colors.text,
-    textAlign: 'center',
-    marginHorizontal: wp(2),
   },
   headerRight: {
     width: 36,
