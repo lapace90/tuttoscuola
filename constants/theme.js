@@ -1,4 +1,3 @@
-// constants/theme.js
 // Colori estratti dal logo TuttoScuola
 
 export const theme = {

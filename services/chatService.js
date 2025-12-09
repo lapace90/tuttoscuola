@@ -55,11 +55,8 @@ export const getUserChats = async (userId) => {
     })
   );
 
-  // Filter out private chats without messages
-  const filteredChats = chats.filter(chat => {
-    if (chat.type === 'private' && !chat.lastMessage) return false;
-    return true;
-  });
+  // Filter out all chats without messages
+  const filteredChats = chats.filter(chat => chat.lastMessage);
 
   return { data: filteredChats, error: null };
 };

@@ -1,4 +1,3 @@
-// app/(main)/slot/edit/[id].jsx
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform, Modal } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';

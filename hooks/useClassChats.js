@@ -25,16 +25,30 @@ export const useClassChats = () => {
       .eq('user_id', profile.id);
 
     if (!error && data) {
-      const chats = data
-        .filter(item => item.chat?.type === 'class')
-        .map(item => ({
-          id: item.chat.id,
-          name: item.chat.name || `Classe ${item.chat.class?.name || ''}`,
-          type: 'class',
-          class_id: item.chat.class_id
-        }));
+      // Filter to class chats only
+      const classChatItems = data.filter(item => item.chat?.type === 'class');
       
-      setClassChats(chats);
+      // Check which have messages
+      const chatsWithMessages = await Promise.all(
+        classChatItems.map(async (item) => {
+          const { count } = await supabase
+            .from('messages')
+            .select('id', { count: 'exact', head: true })
+            .eq('chat_id', item.chat.id);
+          
+          if (count && count > 0) {
+            return {
+              id: item.chat.id,
+              name: item.chat.name || `Classe ${item.chat.class?.name || ''}`,
+              type: 'class',
+              class_id: item.chat.class_id
+            };
+          }
+          return null;
+        })
+      );
+      
+      setClassChats(chatsWithMessages.filter(Boolean));
     }
     
     setLoading(false);

@@ -1,4 +1,3 @@
-// app/(main)/legal/licenses.jsx
 import { View, Text, StyleSheet, ScrollView, Pressable, Linking } from 'react-native';
 import React from 'react';
 import { useRouter } from 'expo-router';

@@ -1,4 +1,3 @@
-// services/authService.js
 import { supabase } from '../lib/supabase';
 
 const ALLOWED_DOMAIN = 'cattaneodigitale.it';

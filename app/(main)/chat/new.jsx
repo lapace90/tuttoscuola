@@ -1,4 +1,3 @@
-// app/(main)/chat/new.jsx
 import { View, Text, StyleSheet, FlatList, Pressable, TextInput, Alert } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';

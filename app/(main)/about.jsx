@@ -1,4 +1,3 @@
-// app/(main)/about.jsx
 import { View, Text, StyleSheet, ScrollView, Pressable, Image } from 'react-native';
 import React from 'react';
 import { useRouter } from 'expo-router';

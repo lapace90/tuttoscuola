@@ -1,4 +1,3 @@
-// app/(main)/announcements/index.jsx
 import { View, Text, StyleSheet, FlatList, Pressable, RefreshControl } from 'react-native';
 import React from 'react';
 import { useRouter } from 'expo-router';

@@ -1,4 +1,3 @@
-// services/notificationService.js
 import { supabase } from '../lib/supabase';
 
 /**

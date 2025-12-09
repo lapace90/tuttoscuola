@@ -1,4 +1,3 @@
-// app/(main)/grades/manage.jsx
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Modal, TextInput } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';

@@ -1,4 +1,3 @@
-// app/welcome.jsx
 import { View, Text, StyleSheet, Image, Pressable } from 'react-native';
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';

@@ -1,4 +1,3 @@
-// app/(main)/profile/edit.jsx
 import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, Alert } from 'react-native';
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';

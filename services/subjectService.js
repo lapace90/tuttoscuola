@@ -1,4 +1,3 @@
-// services/subjectService.js
 import { supabase } from '../lib/supabase';
 
 /**

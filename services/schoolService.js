@@ -1,4 +1,3 @@
-// services/schoolService.js
 import { supabase } from '../lib/supabase';
 
 // ==================== COMUNICAZIONI ====================

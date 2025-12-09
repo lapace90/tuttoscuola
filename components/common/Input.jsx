@@ -1,4 +1,3 @@
-// components/common/Input.jsx
 import { StyleSheet, TextInput, View } from 'react-native';
 import React from 'react';
 import { hp, wp } from '../../helpers/common';

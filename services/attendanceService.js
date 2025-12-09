@@ -1,4 +1,3 @@
-// services/attendanceService.js
 import { supabase } from '../lib/supabase';
 
 /**

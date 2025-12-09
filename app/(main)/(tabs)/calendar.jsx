@@ -1,4 +1,3 @@
-// app/(main)/(tabs)/calendar.jsx
 import { View, Text, StyleSheet, ScrollView, Pressable, RefreshControl, FlatList } from 'react-native';
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'expo-router';

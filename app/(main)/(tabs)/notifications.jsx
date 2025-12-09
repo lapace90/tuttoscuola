@@ -1,4 +1,3 @@
-// app/(main)/notifications.jsx
 import { View, Text, StyleSheet, FlatList, Pressable, RefreshControl, Alert } from 'react-native';
 import React from 'react';
 import { useRouter } from 'expo-router';

@@ -1,4 +1,3 @@
-// components/common/Button.jsx
 import { Pressable, StyleSheet, Text, ActivityIndicator } from 'react-native';
 import React from 'react';
 import { hp, wp } from '../../helpers/common';

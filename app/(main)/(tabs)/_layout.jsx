@@ -1,4 +1,3 @@
-// app/(main)/(tabs)/_layout.jsx
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

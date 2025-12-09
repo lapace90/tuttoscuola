@@ -1,4 +1,3 @@
-// services/bookingService.js
 import { supabase } from '../lib/supabase';
 
 /**

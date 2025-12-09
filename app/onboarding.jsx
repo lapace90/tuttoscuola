@@ -1,4 +1,3 @@
-// app/onboarding.jsx
 import { Alert, StyleSheet, Text, View, ScrollView, Pressable } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';

@@ -1,4 +1,3 @@
-// app/(main)/support/report.jsx
 import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Alert } from 'react-native';
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';

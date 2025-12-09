@@ -1,4 +1,3 @@
-// components/common/BackButton.jsx
 import { StyleSheet, Pressable } from 'react-native';
 import React from 'react';
 import { theme } from '../../constants/theme';

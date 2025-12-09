@@ -1,4 +1,3 @@
-// app/(main)/(tabs)/chats.jsx
 import { View, Text, StyleSheet, FlatList, Pressable, RefreshControl } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';

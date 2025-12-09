@@ -1,4 +1,3 @@
-// services/gradesService.js
 import { supabase } from '../lib/supabase';
 
 /**

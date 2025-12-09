@@ -1,4 +1,3 @@
-// app/(main)/legal/privacy.jsx
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import React from 'react';
 import { useRouter } from 'expo-router';

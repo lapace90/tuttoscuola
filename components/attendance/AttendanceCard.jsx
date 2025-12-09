@@ -1,4 +1,3 @@
-// components/common/AttendanceCard.jsx
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { hp, wp } from '../../helpers/common';

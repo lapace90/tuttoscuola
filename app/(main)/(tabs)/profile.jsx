@@ -1,4 +1,3 @@
-// app/(main)/(tabs)/profile.jsx
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert } from 'react-native';
 import React from 'react';
 import { useRouter } from 'expo-router';
@@ -161,16 +160,6 @@ const Profile = () => {
             <Icon name="chevronRight" size={20} color={theme.colors.textLight} />
           </Pressable>
 
-          <Pressable 
-            style={styles.menuItem}
-            onPress={() => router.push('/(main)/notifications')}
-          >
-            <View style={styles.menuIcon}>
-              <Icon name="bell" size={22} color={theme.colors.text} />
-            </View>
-            <Text style={styles.menuText}>Notifiche</Text>
-            <Icon name="chevronRight" size={20} color={theme.colors.textLight} />
-          </Pressable>
         </View>
 
         <View style={styles.section}>

@@ -1,4 +1,3 @@
-// app/index.jsx
 import { View, ActivityIndicator } from 'react-native';
 import React from 'react';
 import { Redirect } from 'expo-router';

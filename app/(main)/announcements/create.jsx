@@ -1,4 +1,3 @@
-// app/(main)/announcements/create.jsx
 import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, Alert } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';

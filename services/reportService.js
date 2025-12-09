@@ -1,4 +1,3 @@
-// services/reportService.js
 import { supabase } from '../lib/supabase';
 
 /**
