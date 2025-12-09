@@ -1,4 +1,3 @@
-// services/chatService.js
 import { supabase } from '../lib/supabase';
 
 /**
@@ -25,7 +24,7 @@ export const getUserChats = async (userId) => {
   const chats = await Promise.all(
     data.map(async (item) => {
       const chat = item.chat;
-
+      
       // Get last message
       const { data: lastMessage } = await supabase
         .from('messages')
@@ -44,7 +43,7 @@ export const getUserChats = async (userId) => {
           .eq('chat_id', chat.id)
           .neq('user_id', userId)
           .single();
-
+        
         otherMember = members?.user;
       }
 
@@ -56,38 +55,36 @@ export const getUserChats = async (userId) => {
     })
   );
 
-  return { data: chats, error: null };
+  // Filter out private chats without messages
+  const filteredChats = chats.filter(chat => {
+    if (chat.type === 'private' && !chat.lastMessage) return false;
+    return true;
+  });
+
+  return { data: filteredChats, error: null };
 };
 
 /**
  * Get or create private chat between two users
  */
 export const getOrCreatePrivateChat = async (userId1, userId2) => {
-  // Check if chat already exists - partendo da chat_members (funziona con la policy)
-  const { data: myChats } = await supabase
-    .from('chat_members')
-    .select('chat_id')
-    .eq('user_id', userId1);
+  // Check if chat already exists
+  const { data: existingChats } = await supabase
+    .from('chats')
+    .select(`
+      id,
+      chat_members!inner(user_id)
+    `)
+    .eq('type', 'private');
 
-  if (myChats && myChats.length > 0) {
-    // Cerca se l'altro utente è in una di queste chat private
-    const chatIds = myChats.map(c => c.chat_id);
+  // Find chat where both users are members
+  const existingChat = existingChats?.find(chat => {
+    const memberIds = chat.chat_members.map(m => m.user_id);
+    return memberIds.includes(userId1) && memberIds.includes(userId2) && memberIds.length === 2;
+  });
 
-    const { data: sharedChat } = await supabase
-      .from('chat_members')
-      .select(`
-        chat_id,
-        chat:chats!inner(id, type)
-      `)
-      .eq('user_id', userId2)
-      .eq('chat.type', 'private')
-      .in('chat_id', chatIds)
-      .limit(1)
-      .single();
-
-    if (sharedChat) {
-      return { data: { id: sharedChat.chat_id }, error: null };
-    }
+  if (existingChat) {
+    return { data: { id: existingChat.id }, error: null };
   }
 
   // Create new chat
@@ -115,33 +112,26 @@ export const getOrCreatePrivateChat = async (userId1, userId2) => {
   return { data: newChat, error: null };
 };
 
+/**
+ * Get or create class chat
+ */
 export const getOrCreateClassChat = async (classId, className, userId) => {
-  // Check if class chat exists - partendo da chats direttamente (la policy lo permette per type=class)
-  const { data: existingChat, error: findError } = await supabase
+  // Check if class chat exists
+  const { data: existingChat } = await supabase
     .from('chats')
     .select('id')
     .eq('type', 'class')
     .eq('class_id', classId)
-    .maybeSingle();
-
-  if (findError) {
-    console.log('Error finding class chat:', findError);
-    return { data: null, error: findError };
-  }
+    .single();
 
   if (existingChat) {
-    // Assicurati che l'utente sia membro
-    const { error: upsertError } = await supabase
+    // Make sure user is a member
+    await supabase
       .from('chat_members')
       .upsert({
         chat_id: existingChat.id,
         user_id: userId,
-        role: 'member'
       }, { onConflict: 'chat_id,user_id' });
-
-    if (upsertError) {
-      console.log('Error adding member:', upsertError);
-    }
 
     return { data: existingChat, error: null };
   }
@@ -151,19 +141,16 @@ export const getOrCreateClassChat = async (classId, className, userId) => {
     .from('chats')
     .insert({
       type: 'class',
-      name: `Classe ${className}`,
+      name: `Chat ${className}`,
       class_id: classId,
       created_by: userId,
     })
     .select()
     .single();
 
-  if (chatError) {
-    console.log('Error creating class chat:', chatError);
-    return { data: null, error: chatError };
-  }
+  if (chatError) return { data: null, error: chatError };
 
-  // Add creator as member
+  // Add creator as admin
   await supabase
     .from('chat_members')
     .insert({

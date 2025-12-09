@@ -1,67 +1,44 @@
-// hooks/useClassChats.js
 import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
-import { getOrCreateClassChat } from '../services/chatService';
-import { getTeacherClasses } from '../services/userService';
 
 export const useClassChats = () => {
   const { profile } = useAuth();
   const [classChats, setClassChats] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const isStudent = profile?.role === 'student';
-  const isTeacher = profile?.role === 'teacher';
-
   const loadClassChats = useCallback(async () => {
-    if (!profile?.id) {
-      console.log('❌ No profile id');
-      return;
-    }
+    if (!profile?.id) return;
 
-    console.log('🔍 Loading class chats for:', profile.id, 'role:', profile.role);
-    const chatsData = [];
+    // Get existing class chats where user is a member
+    const { data, error } = await supabase
+      .from('chat_members')
+      .select(`
+        chat:chats!inner(
+          id,
+          type,
+          name,
+          class_id,
+          class:classes(id, name)
+        )
+      `)
+      .eq('user_id', profile.id);
 
-    if (isStudent && profile?.class_id) {
-      const className = profile?.class?.name || '';
-      const { data, error } = await getOrCreateClassChat(profile.class_id, className, profile.id);
-      console.log('📚 Student chat:', data, 'Error:', error);
+    if (!error && data) {
+      const chats = data
+        .filter(item => item.chat?.type === 'class')
+        .map(item => ({
+          id: item.chat.id,
+          name: item.chat.name || `Classe ${item.chat.class?.name || ''}`,
+          type: 'class',
+          class_id: item.chat.class_id
+        }));
       
-      if (data) {
-        chatsData.push({
-          ...data,
-          name: `Classe ${className}`,
-          type: 'class'
-        });
-      }
-    } else if (isTeacher) {
-      const { data: teacherClasses, error: tcError } = await getTeacherClasses(profile.id);
-      console.log('📚 Teacher classes:', teacherClasses, 'Error:', tcError);
-      
-      if (teacherClasses) {
-        for (const tc of teacherClasses) {
-          if (tc.class) {
-            console.log('🏫 Getting chat for class:', tc.class.id, tc.class.name);
-            const { data, error } = await getOrCreateClassChat(tc.class.id, tc.class.name, profile.id);
-            console.log('💬 Chat result:', data, 'Error:', error);
-            
-            if (data) {
-              chatsData.push({
-                ...data,
-                name: `Classe ${tc.class.name}`,
-                type: 'class'
-              });
-            }
-          }
-        }
-      }
-    } else {
-      console.log('❌ Not student or teacher:', profile.role);
+      setClassChats(chats);
     }
-
-    console.log('✅ Final chats:', chatsData.length);
-    setClassChats(chatsData);
+    
     setLoading(false);
-  }, [profile?.id, profile?.class_id, profile?.class?.name, isStudent, isTeacher]);
+  }, [profile?.id]);
 
   useEffect(() => {
     loadClassChats();

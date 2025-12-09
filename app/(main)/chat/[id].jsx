@@ -16,13 +16,13 @@ const ChatDetail = () => {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const { profile } = useAuth();
+  const { bottom } = useSafeAreaInsets();
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [chatInfo, setChatInfo] = useState(null);
   const flatListRef = useRef(null);
-  const { bottom } = useSafeAreaInsets();
 
   useEffect(() => {
     if (id && profile?.id) {
@@ -111,7 +111,7 @@ const ChatDetail = () => {
   };
 
   return (
-    <ScreenWrapper bg={theme.colors.background} edges={['top', 'bottom']}>
+    <ScreenWrapper bg={theme.colors.background} noBottomPadding>
       <View style={styles.header}>
         <BackButton router={router} />
         <View style={styles.headerCenter}>
@@ -140,7 +140,7 @@ const ChatDetail = () => {
           data={messages}
           keyExtractor={(item) => item.id}
           renderItem={renderMessage}
-          contentContainerStyle={[styles.listContent, { paddingBottom: bottom + 80 }]}
+          contentContainerStyle={styles.messagesList}
           onContentSizeChange={() => flatListRef.current?.scrollToEnd()}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
@@ -151,7 +151,7 @@ const ChatDetail = () => {
           }
         />
 
-        <View style={styles.inputContainer}>
+        <View style={[styles.inputContainer, { paddingBottom: Platform.OS === 'android' ? Math.max(bottom, 48) + hp(1) : bottom + hp(1) }]}>
           <TextInput
             style={styles.input}
             placeholder="Scrivi un messaggio..."
