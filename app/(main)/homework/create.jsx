@@ -1,6 +1,7 @@
-import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, Alert, Platform } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { hp, wp } from '../../../helpers/common';
 import { theme } from '../../../constants/theme';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -10,6 +11,7 @@ import { useHomework } from '../../../hooks/useHomework';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import BackButton from '../../../components/common/BackButton';
 import Button from '../../../components/common/Button';
+import Icon from '../../../assets/icons/Icon';
 
 const CreateHomework = () => {
   const router = useRouter();
@@ -22,7 +24,8 @@ const CreateHomework = () => {
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [dueDate, setDueDate] = useState('');
+  const [dueDate, setDueDate] = useState(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)); // Default: +7 giorni
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -49,16 +52,37 @@ const CreateHomework = () => {
     setLoading(false);
   };
 
+  const handleDateChange = (event, selectedDate) => {
+    setShowDatePicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setDueDate(selectedDate);
+    }
+  };
+
+  const formatDisplayDate = (date) => {
+    return date.toLocaleDateString('it-IT', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+
+  const formatApiDate = (date) => {
+    return date.toISOString().split('T')[0];
+  };
+
   const handleSave = async () => {
-    if (!selectedClass || !selectedSubject || !title.trim() || !dueDate) {
+    if (!selectedClass || !selectedSubject || !title.trim()) {
       Alert.alert('Errore', 'Compila tutti i campi obbligatori');
       return;
     }
 
-    // Validate date format (YYYY-MM-DD)
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(dueDate)) {
-      Alert.alert('Errore', 'Formato data non valido. Usa AAAA-MM-GG');
+    // Verifica che la data non sia nel passato
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (dueDate < today) {
+      Alert.alert('Errore', 'La scadenza non può essere nel passato');
       return;
     }
 
@@ -68,7 +92,7 @@ const CreateHomework = () => {
       subject: selectedSubject.name,
       title: title.trim(),
       description: description.trim() || null,
-      due_date: dueDate
+      due_date: formatApiDate(dueDate)
     });
     setSaving(false);
 
@@ -79,26 +103,23 @@ const CreateHomework = () => {
     }
   };
 
-  // Generate quick date options
-  const getQuickDates = () => {
-    const dates = [];
-    const today = new Date();
-    
-    for (let i = 1; i <= 7; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() + i);
-      dates.push({
-        label: i === 1 ? 'Domani' : date.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric' }),
-        value: date.toISOString().split('T')[0]
-      });
-    }
-    
-    return dates;
+  // Quick date options
+  const quickDates = [
+    { label: 'Domani', days: 1 },
+    { label: 'Tra 3 giorni', days: 3 },
+    { label: 'Tra 1 settimana', days: 7 },
+    { label: 'Tra 2 settimane', days: 14 },
+  ];
+
+  const setQuickDate = (days) => {
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    setDueDate(date);
   };
 
   if (loading) {
     return (
-      <ScreenWrapper bg={theme.colors.background}>
+      <ScreenWrapper bg={theme.colors.background} edges={['top', 'bottom']}>
         <View style={styles.header}>
           <BackButton router={router} />
           <Text style={styles.headerTitle}>Nuovo Compito</Text>
@@ -112,19 +133,20 @@ const CreateHomework = () => {
   }
 
   return (
-    <ScreenWrapper bg={theme.colors.background}>
+    <ScreenWrapper bg={theme.colors.background} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <BackButton router={router} />
         <Text style={styles.headerTitle}>Nuovo Compito</Text>
         <View style={{ width: 36 }} />
       </View>
 
-      <ScrollView 
+      <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
-        {/* Class selection */}
+        {/* Classe */}
         <View style={styles.section}>
           <Text style={styles.label}>Classe *</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -150,7 +172,7 @@ const CreateHomework = () => {
           </ScrollView>
         </View>
 
-        {/* Subject selection */}
+        {/* Materia */}
         <View style={styles.section}>
           <Text style={styles.label}>Materia *</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -176,7 +198,7 @@ const CreateHomework = () => {
           </ScrollView>
         </View>
 
-        {/* Title */}
+        {/* Titolo */}
         <View style={styles.section}>
           <Text style={styles.label}>Titolo *</Text>
           <TextInput
@@ -188,7 +210,7 @@ const CreateHomework = () => {
           />
         </View>
 
-        {/* Description */}
+        {/* Descrizione */}
         <View style={styles.section}>
           <Text style={styles.label}>Descrizione</Text>
           <TextInput
@@ -202,37 +224,46 @@ const CreateHomework = () => {
           />
         </View>
 
-        {/* Due date */}
+        {/* Scadenza */}
         <View style={styles.section}>
           <Text style={styles.label}>Scadenza *</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          
+          {/* Quick dates */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: hp(1.5) }}>
             <View style={styles.optionsRow}>
-              {getQuickDates().map((d) => (
+              {quickDates.map((qd) => (
                 <Pressable
-                  key={d.value}
-                  style={[
-                    styles.dateChip,
-                    dueDate === d.value && styles.dateChipSelected
-                  ]}
-                  onPress={() => setDueDate(d.value)}
+                  key={qd.days}
+                  style={styles.quickDateChip}
+                  onPress={() => setQuickDate(qd.days)}
                 >
-                  <Text style={[
-                    styles.dateChipText,
-                    dueDate === d.value && styles.dateChipTextSelected
-                  ]}>
-                    {d.label}
-                  </Text>
+                  <Text style={styles.quickDateText}>{qd.label}</Text>
                 </Pressable>
               ))}
             </View>
           </ScrollView>
-          <TextInput
-            style={[styles.input, { marginTop: hp(1) }]}
-            value={dueDate}
-            onChangeText={setDueDate}
-            placeholder="AAAA-MM-GG"
-            placeholderTextColor={theme.colors.placeholder}
-          />
+
+          {/* Date picker button */}
+          <Pressable 
+            style={styles.dateButton}
+            onPress={() => setShowDatePicker(true)}
+          >
+            <Icon name="calendar" size={20} color={theme.colors.primary} />
+            <Text style={styles.dateButtonText}>{formatDisplayDate(dueDate)}</Text>
+            <Icon name="chevronDown" size={20} color={theme.colors.textLight} />
+          </Pressable>
+
+          {/* Date picker */}
+          {showDatePicker && (
+            <DateTimePicker
+              value={dueDate}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={handleDateChange}
+              minimumDate={new Date()}
+              locale="it-IT"
+            />
+          )}
         </View>
 
         <Button
@@ -285,6 +316,8 @@ const styles = StyleSheet.create({
     fontWeight: theme.fonts.semiBold,
     color: theme.colors.textLight,
     marginBottom: hp(1),
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   optionsRow: {
     flexDirection: 'row',
@@ -310,24 +343,32 @@ const styles = StyleSheet.create({
   optionChipTextSelected: {
     color: 'white',
   },
-  dateChip: {
+  quickDateChip: {
     paddingVertical: hp(0.8),
     paddingHorizontal: wp(3),
-    backgroundColor: theme.colors.card,
+    backgroundColor: theme.colors.secondary + '20',
     borderRadius: theme.radius.md,
+  },
+  quickDateText: {
+    fontSize: hp(1.4),
+    color: theme.colors.secondary,
+    fontWeight: theme.fonts.medium,
+  },
+  dateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.lg,
+    padding: hp(1.5),
     borderWidth: 1,
     borderColor: theme.colors.border,
+    gap: wp(3),
   },
-  dateChipSelected: {
-    backgroundColor: theme.colors.secondary,
-    borderColor: theme.colors.secondary,
-  },
-  dateChipText: {
-    fontSize: hp(1.4),
+  dateButtonText: {
+    flex: 1,
+    fontSize: hp(1.7),
     color: theme.colors.text,
-  },
-  dateChipTextSelected: {
-    color: 'white',
+    fontWeight: theme.fonts.medium,
   },
   input: {
     backgroundColor: theme.colors.card,

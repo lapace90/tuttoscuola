@@ -60,7 +60,7 @@ const Subjects = () => {
   };
 
   return (
-    <ScreenWrapper bg={theme.colors.background}>
+    <ScreenWrapper bg={theme.colors.background} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <BackButton router={router} />
         <Text style={styles.headerTitle}>Le mie materie</Text>

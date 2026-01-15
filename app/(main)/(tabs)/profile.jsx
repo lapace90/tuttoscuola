@@ -18,8 +18,8 @@ const Profile = () => {
       'Sei sicuro di voler uscire?',
       [
         { text: 'Annulla', style: 'cancel' },
-        { 
-          text: 'Esci', 
+        {
+          text: 'Esci',
           style: 'destructive',
           onPress: async () => {
             await signOut();
@@ -39,8 +39,8 @@ const Profile = () => {
   };
 
   return (
-    <ScreenWrapper bg={theme.colors.background}>
-      <ScrollView 
+    <ScreenWrapper bg={theme.colors.background} edges={['top', 'bottom']}>
+      <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
@@ -63,7 +63,7 @@ const Profile = () => {
             {profile?.first_name} {profile?.last_name}
           </Text>
           <Text style={styles.email}>{profile?.email}</Text>
-          
+
           {profile?.role === 'student' && profile?.class && (
             <View style={styles.classInfo}>
               <Icon name="users" size={16} color={theme.colors.textLight} />
@@ -74,8 +74,8 @@ const Profile = () => {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account</Text>
-          
-          <Pressable 
+
+          <Pressable
             style={styles.menuItem}
             onPress={() => router.push('/(main)/profile/edit')}
           >
@@ -87,7 +87,7 @@ const Profile = () => {
           </Pressable>
 
           {profile?.role === 'teacher' && (
-            <Pressable 
+            <Pressable
               style={styles.menuItem}
               onPress={() => router.push('/(main)/subjects')}
             >
@@ -100,7 +100,7 @@ const Profile = () => {
           )}
 
           {profile?.role === 'teacher' && (
-            <Pressable 
+            <Pressable
               style={styles.menuItem}
               onPress={() => router.push('/(main)/classes')}
             >
@@ -113,7 +113,7 @@ const Profile = () => {
           )}
 
           {profile?.role === 'teacher' && (
-            <Pressable 
+            <Pressable
               style={styles.menuItem}
               onPress={() => router.push('/(main)/grades/manage')}
             >
@@ -126,7 +126,7 @@ const Profile = () => {
           )}
 
           {profile?.role === 'student' && (
-            <Pressable 
+            <Pressable
               style={styles.menuItem}
               onPress={() => router.push('/(main)/grades')}
             >
@@ -138,7 +138,7 @@ const Profile = () => {
             </Pressable>
           )}
 
-          <Pressable 
+          <Pressable
             style={styles.menuItem}
             onPress={() => router.push('/(main)/homework')}
           >
@@ -149,7 +149,7 @@ const Profile = () => {
             <Icon name="chevronRight" size={20} color={theme.colors.textLight} />
           </Pressable>
 
-          <Pressable 
+          <Pressable
             style={styles.menuItem}
             onPress={() => router.push('/(main)/announcements')}
           >
@@ -160,12 +160,25 @@ const Profile = () => {
             <Icon name="chevronRight" size={20} color={theme.colors.textLight} />
           </Pressable>
 
+          {profile?.role === 'teacher' && (
+            <Pressable
+              style={styles.menuItem}
+              onPress={() => router.push('/(main)/admin')}
+            >
+              <View style={styles.menuIcon}>
+                <Icon name="shield" size={22} color={theme.colors.text} />
+              </View>
+              <Text style={styles.menuText}>Dashboard Admin</Text>
+              <Icon name="chevronRight" size={20} color={theme.colors.textLight} />
+            </Pressable>
+          )}
+
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Supporto</Text>
-          
-          <Pressable 
+
+          <Pressable
             style={styles.menuItem}
             onPress={() => router.push('/(main)/about')}
           >

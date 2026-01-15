@@ -157,7 +157,7 @@ const ManageGrades = () => {
   // Step 1: Select class
   if (!selectedClass) {
     return (
-      <ScreenWrapper bg={theme.colors.background}>
+      <ScreenWrapper bg={theme.colors.background} edges={['top', 'bottom']}>
         <View style={styles.header}>
           <BackButton router={router} />
           <Text style={styles.headerTitle}>Registro Voti</Text>
@@ -194,7 +194,7 @@ const ManageGrades = () => {
   // Step 2: Select subject
   if (!selectedSubject) {
     return (
-      <ScreenWrapper bg={theme.colors.background}>
+      <ScreenWrapper bg={theme.colors.background} edges={['top', 'bottom']}>
         <View style={styles.header}>
           <BackButton router={router} onPress={() => setSelectedClass(null)} />
           <Text style={styles.headerTitle}>Registro Voti</Text>
@@ -234,7 +234,7 @@ const ManageGrades = () => {
 
   // Step 3: Show students with grades
   return (
-    <ScreenWrapper bg={theme.colors.background}>
+    <ScreenWrapper bg={theme.colors.background} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <BackButton router={router} onPress={() => setSelectedSubject(null)} />
         <Text style={styles.headerTitle}>Registro Voti</Text>

@@ -72,7 +72,7 @@ const Onboarding = () => {
   ];
 
   return (
-    <ScreenWrapper bg={theme.colors.background}>
+    <ScreenWrapper bg={theme.colors.background} edges={['top', 'bottom']}>
       <StatusBar style="dark" />
       <ScrollView 
         style={styles.container}

@@ -249,7 +249,7 @@ const Calendar = () => {
   };
 
   return (
-    <ScreenWrapper bg={theme.colors.background}>
+    <ScreenWrapper bg={theme.colors.background} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <View>
           <Text style={styles.title}>Calendario</Text>

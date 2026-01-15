@@ -138,7 +138,7 @@ const Attendance = () => {
 
   if (loading && classes.length === 0) {
     return (
-      <ScreenWrapper bg={theme.colors.background}>
+      <ScreenWrapper bg={theme.colors.background} edges={['top', 'bottom']}>
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Caricamento...</Text>
         </View>
@@ -147,7 +147,7 @@ const Attendance = () => {
   }
 
   return (
-    <ScreenWrapper bg={theme.colors.background}>
+    <ScreenWrapper bg={theme.colors.background} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <BackButton router={router} />
         <Text style={styles.headerTitle}>Registro Presenze</Text>

@@ -102,7 +102,7 @@ const Chats = () => {
   };
 
   return (
-    <ScreenWrapper bg={theme.colors.background}>
+    <ScreenWrapper bg={theme.colors.background} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <Text style={styles.title}>Chat</Text>
         <Pressable 

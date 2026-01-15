@@ -8,39 +8,46 @@ const iconMap = {
   lock: { lib: 'feather', name: 'lock' },
   user: { lib: 'feather', name: 'user' },
   users: { lib: 'feather', name: 'users' },
-  
+  shield: { lib: 'feather', name: 'shield' },
+
   // Navigation
   arrowLeft: { lib: 'feather', name: 'arrow-left' },
   arrowRight: { lib: 'feather', name: 'arrow-right' },
+  arrowUp: { lib: 'feather', name: 'arrow-up' },
+  arrowDown: { lib: 'feather', name: 'arrow-down' },
   chevronLeft: { lib: 'feather', name: 'chevron-left' },
   chevronRight: { lib: 'feather', name: 'chevron-right' },
-  
+
+
   // Actions
   check: { lib: 'feather', name: 'check' },
   x: { lib: 'feather', name: 'x' },
   plus: { lib: 'feather', name: 'plus' },
+  minus: { lib: 'feather', name: 'minus' },
   edit: { lib: 'feather', name: 'edit-2' },
   trash: { lib: 'feather', name: 'trash-2' },
   send: { lib: 'feather', name: 'send' },
   search: { lib: 'feather', name: 'search' },
-  
+  repeat: { lib: 'feather', name: 'repeat' },
+
   // Status & Info
   info: { lib: 'feather', name: 'info' },
   alertCircle: { lib: 'feather', name: 'alert-circle' },
   checkCircle: { lib: 'feather', name: 'check-circle' },
-  
+  alertTriangle: { lib: 'feather', name: 'alert-triangle' },
+
   // Calendar
   calendar: { lib: 'feather', name: 'calendar' },
   clock: { lib: 'feather', name: 'clock' },
-  
+
   // Chat
   messageCircle: { lib: 'feather', name: 'message-circle' },
   messageSquare: { lib: 'feather', name: 'message-square' },
-  
+
   // Settings
   settings: { lib: 'feather', name: 'settings' },
   logout: { lib: 'feather', name: 'log-out' },
-  
+
   // Misc
   home: { lib: 'feather', name: 'home' },
   book: { lib: 'feather', name: 'book' },
@@ -59,7 +66,8 @@ const iconMap = {
   hash: { lib: 'feather', name: 'hash' },
   briefcase: { lib: 'feather', name: 'briefcase' },
   refresh: { lib: 'feather', name: 'rotate-ccw' },
-  
+  award: { lib: 'feather', name: 'award' },
+
   // Material Icons (per icone non disponibili in Feather)
   school: { lib: 'material', name: 'school' },
   class: { lib: 'material', name: 'class' },
@@ -75,20 +83,20 @@ const Icon = ({ name, size = 24, color = '#000', style }) => {
 
   if (iconConfig.lib === 'material') {
     return (
-      <MaterialIcons 
-        name={iconConfig.name} 
-        size={size} 
-        color={color} 
+      <MaterialIcons
+        name={iconConfig.name}
+        size={size}
+        color={color}
         style={style}
       />
     );
   }
 
   return (
-    <Feather 
-      name={iconConfig.name} 
-      size={size} 
-      color={color} 
+    <Feather
+      name={iconConfig.name}
+      size={size}
+      color={color}
       style={style}
     />
   );

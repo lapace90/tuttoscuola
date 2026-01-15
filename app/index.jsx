@@ -7,6 +7,10 @@ import { theme } from '../constants/theme';
 const Index = () => {
   const { user, profile, loading } = useAuth();
 
+  console.log('INDEX - loading:', loading);
+  console.log('INDEX - user:', user?.id);
+  console.log('INDEX - profile:', profile?.email);
+
   if (loading) {
     return (
       <View style={{ 
@@ -21,10 +25,12 @@ const Index = () => {
   }
 
   if (!user) {
+    console.log('INDEX - No user, going to welcome');
     return <Redirect href="/welcome" />;
   }
 
   if (!profile?.onboarding_completed) {
+    console.log('INDEX - Onboarding not complete');
     return <Redirect href="/onboarding" />;
   }
 

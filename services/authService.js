@@ -1,4 +1,8 @@
 import { supabase } from '../lib/supabase';
+import * as WebBrowser from 'expo-web-browser';
+import * as AuthSession from 'expo-auth-session';
+
+WebBrowser.maybeCompleteAuthSession();
 
 const ALLOWED_DOMAIN = 'cattaneodigitale.it';
 
@@ -8,7 +12,7 @@ const ALLOWED_DOMAIN = 'cattaneodigitale.it';
 export const validateEmailDomain = (email) => {
   // DEV: disabilita validazione
   return { valid: true };
-  
+
   // PROD: riabilita questo
   // if (!email) return { valid: false, error: 'Email richiesta' };
   // const domain = email.split('@')[1]?.toLowerCase();
@@ -110,4 +114,73 @@ export const getCurrentUser = async () => {
  */
 export const onAuthStateChange = (callback) => {
   return supabase.auth.onAuthStateChange(callback);
+};
+
+/**
+ * Sign in with Google
+ */
+export const signInWithGoogle = async () => {
+  try {
+    const redirectUrl = AuthSession.makeRedirectUri({
+      scheme: 'tuttoscuola',
+      path: 'auth/callback'
+    });
+
+    console.log('Redirect URL:', redirectUrl); // Debugging line
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: redirectUrl,
+        // queryParams: {
+        //   hd: ALLOWED_DOMAIN, // Restrict to school domain
+        // },
+      },
+    });
+
+    if (error) throw error;
+
+    if (data?.url) {
+      const result = await WebBrowser.openAuthSessionAsync(
+        data.url,
+        redirectUrl
+      );
+
+      if (result.type === 'success') {
+        const url = result.url;
+        // Extract tokens from URL
+        const params = new URLSearchParams(url.split('#')[1]);
+        const accessToken = params.get('access_token');
+        const refreshToken = params.get('refresh_token');
+
+        if (accessToken) {
+          const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+
+          if (sessionError) throw sessionError;
+
+          // Validate domain after Google sign-in
+          const userEmail = sessionData?.user?.email;
+          if (userEmail) {
+            const validation = validateEmailDomain(userEmail);
+            if (!validation.valid) {
+              await supabase.auth.signOut();
+              return { data: null, error: { message: validation.error } };
+            }
+          }
+
+          return { data: sessionData, error: null };
+        }
+      }
+
+      return { data: null, error: { message: 'Autenticazione annullata' } };
+    }
+
+    return { data: null, error: { message: 'Impossibile avviare autenticazione Google' } };
+  } catch (error) {
+    console.error('Google sign-in error:', error);
+    return { data: null, error };
+  }
 };

@@ -2,12 +2,30 @@ import { View, StyleSheet } from 'react-native';
 import React from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const ScreenWrapper = ({ children, bg, style }) => {
-  const { top } = useSafeAreaInsets();
-  const paddingTop = top > 0 ? top + 5 : 30;
+const ScreenWrapper = ({ 
+  children, 
+  bg, 
+  style,
+  edges = ['top'],
+}) => {
+  const insets = useSafeAreaInsets();
+
+  const paddingStyle = {
+    paddingTop: edges.includes('top') ? insets.top : 0,
+    paddingBottom: edges.includes('bottom') ? insets.bottom : 0,
+    paddingLeft: edges.includes('left') ? insets.left : 0,
+    paddingRight: edges.includes('right') ? insets.right : 0,
+  };
 
   return (
-    <View style={[styles.container, { paddingTop, backgroundColor: bg }, style]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: bg },
+        paddingStyle,
+        style,
+      ]}
+    >
       {children}
     </View>
   );

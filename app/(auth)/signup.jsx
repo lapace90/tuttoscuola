@@ -10,6 +10,7 @@ import ScreenWrapper from '../../components/common/ScreenWrapper';
 import BackButton from '../../components/common/BackButton';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
+import GoogleSignInButton from '../../components/common/GoogleSignInButton';
 import Icon from '../../assets/icons/Icon';
 
 const SignUp = () => {
@@ -53,17 +54,24 @@ const SignUp = () => {
     if (error) {
       Alert.alert('Errore', error.message);
     } else {
-      router.replace('/onboarding');
-      // Alert.alert(
-      //   'Controlla la tua email! 📧',
-      //   'Ti abbiamo inviato un link di conferma. Clicca sul link per attivare il tuo account.',
-      //   [{ text: 'OK', onPress: () => router.replace('/(auth)/login') }]
-      // );
+      Alert.alert(
+        'Controlla la tua email! 📧',
+        'Ti abbiamo inviato un link di conferma. Clicca sul link per attivare il tuo account.',
+        [{ text: 'OK', onPress: () => router.replace('/(auth)/login') }]
+      );
     }
   };
 
+  const handleGoogleSuccess = () => {
+    // Auth state change will handle navigation
+  };
+
+  const handleGoogleError = (message) => {
+    Alert.alert('Errore', message);
+  };
+
   return (
-    <ScreenWrapper bg={theme.colors.background}>
+    <ScreenWrapper bg={theme.colors.background} edges={['top', 'bottom']}>
       <StatusBar style="dark" />
       <View style={styles.container}>
         <BackButton router={router} />
@@ -80,6 +88,19 @@ const SignUp = () => {
           <Text style={styles.infoText}>
             Solo email @cattaneodigitale.it sono accettate
           </Text>
+        </View>
+
+        {/* Google Sign In */}
+        <GoogleSignInButton
+          onSuccess={handleGoogleSuccess}
+          onError={handleGoogleError}
+        />
+
+        {/* Divider */}
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>oppure</Text>
+          <View style={styles.dividerLine} />
         </View>
 
         <View style={styles.form}>
@@ -151,7 +172,7 @@ const styles = StyleSheet.create({
     paddingVertical: hp(1.5),
     paddingHorizontal: wp(4),
     borderRadius: theme.radius.md,
-    marginBottom: hp(3),
+    marginBottom: hp(2),
     gap: wp(2),
     borderLeftWidth: 3,
     borderLeftColor: theme.colors.secondary,
@@ -160,6 +181,21 @@ const styles = StyleSheet.create({
     fontSize: hp(1.6),
     color: theme.colors.textLight,
     flex: 1,
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: hp(2),
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: theme.colors.border,
+  },
+  dividerText: {
+    marginHorizontal: wp(3),
+    fontSize: hp(1.6),
+    color: theme.colors.textLight,
   },
   form: {
     gap: hp(2),

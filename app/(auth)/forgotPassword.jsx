@@ -46,7 +46,7 @@ const ForgotPassword = () => {
 
   if (emailSent) {
     return (
-      <ScreenWrapper bg={theme.colors.background}>
+      <ScreenWrapper bg={theme.colors.background} edges={['top', 'bottom']}>
         <StatusBar style="dark" />
         <View style={styles.container}>
           <BackButton router={router} />
@@ -75,7 +75,7 @@ const ForgotPassword = () => {
   }
 
   return (
-    <ScreenWrapper bg={theme.colors.background}>
+    <ScreenWrapper bg={theme.colors.background} edges={['top', 'bottom']}>
       <StatusBar style="dark" />
       <View style={styles.container}>
         <BackButton router={router} />
