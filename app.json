@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "tuttoscuola",
+    "name": "TuttoScuola",
     "slug": "tuttoscuola",
     "scheme": "tuttoscuola",
     "version": "1.0.0",
@@ -33,6 +33,14 @@
         {
           "photosPermission": "L'app accede alle tue foto per impostare l'avatar del profilo.",
           "cameraPermission": "L'app accede alla fotocamera per scattare foto profilo."
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "L'app accede alla galleria per salvare le immagini.",
+          "savePhotosPermission": "L'app salva le immagini nella galleria.",
+          "isAccessMediaLocationEnabled": true
         }
       ],
       "expo-web-browser"

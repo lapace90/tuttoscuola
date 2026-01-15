@@ -214,7 +214,7 @@ export const getNextClass = async (currentClassId, instituteId, autoCreate = fal
     .select('id, name, year')
     .eq('name', nextClassName)
     .eq('institute_id', instituteId)
-    .single();
+    .maybeSingle();
 
   // Crea automaticamente la classe se non esiste
   if (!nextClass && autoCreate) {
@@ -283,7 +283,7 @@ export const promoteEntireClass = async (classId, instituteId) => {
     .from('classes')
     .select('name, year')
     .eq('id', classId)
-    .single();
+    .maybeSingle();
 
   const section = currentClass.name.replace(/[0-9]/g, '');
   const nextClassName = `${currentClass.year + 1}${section}`;

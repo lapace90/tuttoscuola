@@ -29,6 +29,8 @@ const iconMap = {
   send: { lib: 'feather', name: 'send' },
   search: { lib: 'feather', name: 'search' },
   repeat: { lib: 'feather', name: 'repeat' },
+  download: { lib: 'feather', name: 'download' },
+  share: { lib: 'feather', name: 'share' },
 
   // Status & Info
   info: { lib: 'feather', name: 'info' },

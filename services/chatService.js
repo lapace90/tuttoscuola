@@ -15,14 +15,15 @@ export const getUserChats = async (userId) => {
         class:classes(id, name)
       )
     `)
-    .eq('user_id', userId)
-    .order('chat(updated_at)', { ascending: false });
+    .eq('user_id', userId);
 
   if (error) return { data: null, error };
 
-  // Flatten and enrich with last message and other members
+  // Filtra null
+  const validData = data.filter(item => item.chat !== null);
+
   const chats = await Promise.all(
-    data.map(async (item) => {
+    validData.map(async (item) => {
       const chat = item.chat;
       
       // Get last message
@@ -32,7 +33,7 @@ export const getUserChats = async (userId) => {
         .eq('chat_id', chat.id)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       // Get other members for private chats
       let otherMember = null;
@@ -42,7 +43,7 @@ export const getUserChats = async (userId) => {
           .select('user:users(id, first_name, last_name, avatar_url)')
           .eq('chat_id', chat.id)
           .neq('user_id', userId)
-          .single();
+          .maybeSingle();
         
         otherMember = members?.user;
       }
@@ -55,17 +56,48 @@ export const getUserChats = async (userId) => {
     })
   );
 
-  // Filter out all chats without messages
   const filteredChats = chats.filter(chat => chat.lastMessage);
 
   return { data: filteredChats, error: null };
 };
 
 /**
+ * Get chat by ID with full info
+ */
+export const getChatById = async (chatId, userId) => {
+  const { data: chat, error } = await supabase
+    .from('chats')
+    .select(`
+      id,
+      type,
+      name,
+      class_id,
+      class:classes(id, name)
+    `)
+    .eq('id', chatId)
+    .single();
+
+  if (error) return { data: null, error };
+
+  let otherMember = null;
+  if (chat.type === 'private') {
+    const { data: members } = await supabase
+      .from('chat_members')
+      .select('user:users(id, first_name, last_name, avatar_url)')
+      .eq('chat_id', chatId)
+      .neq('user_id', userId)
+      .maybeSingle();
+    
+    otherMember = members?.user;
+  }
+
+  return { data: { ...chat, otherMember }, error: null };
+};
+
+/**
  * Get or create private chat between two users
  */
 export const getOrCreatePrivateChat = async (userId1, userId2) => {
-  // Check if chat already exists
   const { data: existingChats } = await supabase
     .from('chats')
     .select(`
@@ -74,7 +106,6 @@ export const getOrCreatePrivateChat = async (userId1, userId2) => {
     `)
     .eq('type', 'private');
 
-  // Find chat where both users are members
   const existingChat = existingChats?.find(chat => {
     const memberIds = chat.chat_members.map(m => m.user_id);
     return memberIds.includes(userId1) && memberIds.includes(userId2) && memberIds.length === 2;
@@ -84,7 +115,6 @@ export const getOrCreatePrivateChat = async (userId1, userId2) => {
     return { data: { id: existingChat.id }, error: null };
   }
 
-  // Create new chat
   const { data: newChat, error: chatError } = await supabase
     .from('chats')
     .insert({
@@ -96,7 +126,6 @@ export const getOrCreatePrivateChat = async (userId1, userId2) => {
 
   if (chatError) return { data: null, error: chatError };
 
-  // Add both members
   const { error: membersError } = await supabase
     .from('chat_members')
     .insert([
@@ -113,16 +142,14 @@ export const getOrCreatePrivateChat = async (userId1, userId2) => {
  * Get or create class chat
  */
 export const getOrCreateClassChat = async (classId, className, userId) => {
-  // Check if class chat exists
   const { data: existingChat } = await supabase
     .from('chats')
     .select('id')
     .eq('type', 'class')
     .eq('class_id', classId)
-    .single();
+    .maybeSingle();
 
   if (existingChat) {
-    // Make sure user is a member
     await supabase
       .from('chat_members')
       .upsert({
@@ -133,7 +160,6 @@ export const getOrCreateClassChat = async (classId, className, userId) => {
     return { data: existingChat, error: null };
   }
 
-  // Create class chat
   const { data: newChat, error: chatError } = await supabase
     .from('chats')
     .insert({
@@ -147,7 +173,6 @@ export const getOrCreateClassChat = async (classId, className, userId) => {
 
   if (chatError) return { data: null, error: chatError };
 
-  // Add creator as admin
   await supabase
     .from('chat_members')
     .insert({
@@ -162,24 +187,22 @@ export const getOrCreateClassChat = async (classId, className, userId) => {
 /**
  * Get messages for a chat
  */
-export const getChatMessages = async (chatId, limit = 50, before = null) => {
-  let query = supabase
+export const getChatMessages = async (chatId, limit = 50) => {
+  const { data, error } = await supabase
     .from('messages')
     .select(`
-      *,
+      id,
+      chat_id,
+      sender_id,
+      content,
+      created_at,
       sender:users!sender_id(id, first_name, last_name, avatar_url)
     `)
     .eq('chat_id', chatId)
-    .order('created_at', { ascending: false })
+    .order('created_at', { ascending: true })
     .limit(limit);
 
-  if (before) {
-    query = query.lt('created_at', before);
-  }
-
-  const { data, error } = await query;
-
-  return { data: data?.reverse(), error };
+  return { data, error };
 };
 
 /**
@@ -194,12 +217,15 @@ export const sendMessage = async (chatId, senderId, content) => {
       content,
     })
     .select(`
-      *,
+      id,
+      chat_id,
+      sender_id,
+      content,
+      created_at,
       sender:users!sender_id(id, first_name, last_name, avatar_url)
     `)
     .single();
 
-  // Update chat's updated_at
   if (!error) {
     await supabase
       .from('chats')
@@ -214,7 +240,7 @@ export const sendMessage = async (chatId, senderId, content) => {
  * Subscribe to new messages in a chat
  */
 export const subscribeToMessages = (chatId, callback) => {
-  return supabase
+  const channel = supabase
     .channel(`messages:${chatId}`)
     .on(
       'postgres_changes',
@@ -225,11 +251,14 @@ export const subscribeToMessages = (chatId, callback) => {
         filter: `chat_id=eq.${chatId}`,
       },
       async (payload) => {
-        // Fetch full message with sender info
         const { data } = await supabase
           .from('messages')
           .select(`
-            *,
+            id,
+            chat_id,
+            sender_id,
+            content,
+            created_at,
             sender:users!sender_id(id, first_name, last_name, avatar_url)
           `)
           .eq('id', payload.new.id)
@@ -239,6 +268,8 @@ export const subscribeToMessages = (chatId, callback) => {
       }
     )
     .subscribe();
+
+  return channel;
 };
 
 /**

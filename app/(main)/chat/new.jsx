@@ -43,16 +43,12 @@ const NewChat = () => {
     const instituteId = profile?.institute_id || profile?.class?.institute_id || profile?.institute?.id;
     
     if (profile?.role === 'teacher') {
-      // Professore: carica le sue classi + studenti + altri prof
       const { data: teacherClasses } = await getTeacherClasses(profile.id);
       
       if (teacherClasses) {
         for (const tc of teacherClasses) {
           if (tc.class?.id) {
-            // Aggiungi classe
             allClasses.push(tc.class);
-            
-            // Carica studenti della classe
             const { data: students } = await getUsersByClass(tc.class.id);
             if (students) {
               students.forEach(s => {
@@ -65,7 +61,6 @@ const NewChat = () => {
         }
       }
       
-      // Aggiungi altri professori
       if (instituteId) {
         const { data: teachers } = await getTeachers(instituteId);
         if (teachers) {
@@ -77,7 +72,6 @@ const NewChat = () => {
         }
       }
     } else {
-      // Studente: la sua classe + compagni + professori
       if (profile?.class_id) {
         allClasses.push({ 
           id: profile.class_id, 
@@ -148,34 +142,12 @@ const NewChat = () => {
     }
   };
 
-  const renderItem = ({ item }) => {
-    if (item.type === 'header') {
-      return (
-        <Text style={styles.sectionHeader}>{item.title}</Text>
-      );
-    }
-    
-    if (item.type === 'class') {
-      return (
-        <Pressable
-          style={styles.userItem}
-          onPress={() => handleSelectClass(item)}
-          disabled={creating}
-        >
-          <View style={[styles.userAvatar, { backgroundColor: theme.colors.secondary + '30' }]}>
-            <Icon name="users" size={22} color={theme.colors.secondary} />
-          </View>
-          <View style={styles.userInfo}>
-            <Text style={styles.userName}>Classe {item.name}</Text>
-            <Text style={styles.userRole}>Chat di gruppo</Text>
-          </View>
-          <Icon name="chevronRight" size={20} color={theme.colors.textLight} />
-        </Pressable>
-      );
-    }
-    
-    // User item
-    return (
+  // Group users by role
+  const teachers = filteredUsers.filter(u => u.role === 'teacher');
+  const students = filteredUsers.filter(u => u.role === 'student');
+
+  const renderUserItem = (item, isLast = false) => (
+    <View key={item.id}>
       <Pressable
         style={styles.userItem}
         onPress={() => handleSelectUser(item)}
@@ -202,55 +174,27 @@ const NewChat = () => {
         </View>
         <Icon name="messageCircle" size={20} color={theme.colors.textLight} />
       </Pressable>
-    );
-  };
-
-  // Group users by role
-  const teachers = filteredUsers.filter(u => u.role === 'teacher');
-  const students = filteredUsers.filter(u => u.role === 'student');
-
-  // Build list data
-  const listData = [
-    // Classi (solo se non c'è ricerca attiva)
-    ...(classes.length > 0 && !search.trim() ? [
-      { type: 'header', title: 'Chat di classe' },
-      ...classes.map(c => ({ type: 'class', ...c }))
-    ] : []),
-    // Professori
-    ...(teachers.length > 0 ? [
-      { type: 'header', title: 'Professori' },
-      ...teachers.map(t => ({ type: 'user', ...t }))
-    ] : []),
-    // Studenti
-    ...(students.length > 0 ? [
-      { type: 'header', title: 'Studenti' },
-      ...students.map(s => ({ type: 'user', ...s }))
-    ] : []),
-  ];
+      {!isLast && <View style={styles.separator} />}
+    </View>
+  );
 
   return (
     <ScreenWrapper bg={theme.colors.background} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <BackButton router={router} />
-        <Text style={styles.headerTitle}>Nuova Chat</Text>
+        <Text style={styles.headerTitle}>Nuova chat</Text>
         <View style={{ width: 36 }} />
       </View>
 
-      {/* Search */}
       <View style={styles.searchContainer}>
         <Icon name="search" size={20} color={theme.colors.textLight} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Cerca persona..."
+          placeholder="Cerca..."
           placeholderTextColor={theme.colors.placeholder}
           value={search}
           onChangeText={setSearch}
         />
-        {search.length > 0 && (
-          <Pressable onPress={() => setSearch('')}>
-            <Icon name="x" size={20} color={theme.colors.textLight} />
-          </Pressable>
-        )}
       </View>
 
       {loading ? (
@@ -259,19 +203,66 @@ const NewChat = () => {
         </View>
       ) : (
         <FlatList
-          data={listData}
-          keyExtractor={(item, index) => 
-            item.type === 'header' ? `header-${index}` : 
-            item.type === 'class' ? `class-${item.id}` : 
-            `user-${item.id}`
-          }
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContent}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>Nessun risultato</Text>
+          data={[]}
+          renderItem={null}
+          ListHeaderComponent={
+            <View style={styles.content}>
+              {/* Chat di classe */}
+              {classes.length > 0 && !search.trim() && (
+                <View style={styles.section}>
+                  <Text style={styles.sectionHeader}>Chat di classe</Text>
+                  <View style={styles.sectionCard}>
+                    {classes.map((item, index) => (
+                      <View key={item.id}>
+                        <Pressable
+                          style={styles.userItem}
+                          onPress={() => handleSelectClass(item)}
+                          disabled={creating}
+                        >
+                          <View style={[styles.userAvatar, { backgroundColor: theme.colors.secondary + '30' }]}>
+                            <Icon name="users" size={22} color={theme.colors.secondary} />
+                          </View>
+                          <View style={styles.userInfo}>
+                            <Text style={styles.userName}>Classe {item.name}</Text>
+                            <Text style={styles.userRole}>Chat di gruppo</Text>
+                          </View>
+                          <Icon name="chevronRight" size={20} color={theme.colors.textLight} />
+                        </Pressable>
+                        {index < classes.length - 1 && <View style={styles.separator} />}
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
+
+              {/* Professori */}
+              {teachers.length > 0 && (
+                <View style={styles.section}>
+                  <Text style={styles.sectionHeader}>Professori</Text>
+                  <View style={styles.sectionCard}>
+                    {teachers.map((item, index) => renderUserItem(item, index === teachers.length - 1))}
+                  </View>
+                </View>
+              )}
+
+              {/* Studenti */}
+              {students.length > 0 && (
+                <View style={styles.section}>
+                  <Text style={styles.sectionHeader}>Studenti</Text>
+                  <View style={styles.sectionCard}>
+                    {students.map((item, index) => renderUserItem(item, index === students.length - 1))}
+                  </View>
+                </View>
+              )}
+
+              {filteredUsers.length === 0 && !loading && (
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyText}>Nessun risultato</Text>
+                </View>
+              )}
             </View>
           }
+          contentContainerStyle={styles.listContent}
         />
       )}
     </ScreenWrapper>
@@ -296,12 +287,14 @@ const styles = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: theme.colors.gray + '20',
+    backgroundColor: theme.colors.card,
     marginHorizontal: wp(4),
     marginBottom: hp(2),
     paddingHorizontal: wp(3),
     borderRadius: theme.radius.lg,
     height: hp(5.5),
+    borderWidth: 1,
+    borderColor: theme.colors.border,
   },
   searchInput: {
     flex: 1,
@@ -310,8 +303,13 @@ const styles = StyleSheet.create({
     color: theme.colors.text,
   },
   listContent: {
-    paddingHorizontal: wp(4),
     paddingBottom: hp(4),
+  },
+  content: {
+    paddingHorizontal: wp(4),
+  },
+  section: {
+    marginBottom: hp(2.5),
   },
   sectionHeader: {
     fontSize: hp(1.5),
@@ -319,15 +317,26 @@ const styles = StyleSheet.create({
     color: theme.colors.textLight,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginTop: hp(2),
     marginBottom: hp(1),
+    marginLeft: wp(1),
+  },
+  sectionCard: {
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.xl,
+    borderWidth: 1,
+    borderColor: theme.colors.accentLight,
+    overflow: 'hidden',
   },
   userItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: hp(1.5),
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.gray + '20',
+    paddingHorizontal: wp(3),
+  },
+  separator: {
+    height: 1,
+    backgroundColor: theme.colors.accentLight,
+    marginHorizontal: wp(3),
   },
   userAvatar: {
     width: hp(5.5),
