@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform, Modal } from 'react-native';
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { hp, wp } from '../../../helpers/common';
@@ -19,10 +19,10 @@ import Icon from '../../../assets/icons/Icon';
 const formatTimeInput = (text) => {
   // Rimuovi tutto tranne i numeri
   const numbers = text.replace(/[^\d]/g, '');
-  
+
   // Limita a 4 cifre
   const limited = numbers.slice(0, 4);
-  
+
   // Inserisci ":" dopo le prime 2 cifre
   if (limited.length > 2) {
     return `${limited.slice(0, 2)}:${limited.slice(2)}`;
@@ -64,7 +64,7 @@ const CreateSlot = () => {
   const router = useRouter();
   const { profile } = useAuth();
   const { bottom } = useSafeAreaInsets();
-  
+
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [type, setType] = useState('interrogazione');
   const [date, setDate] = useState(new Date());
@@ -79,6 +79,7 @@ const CreateSlot = () => {
   const [subjects, setSubjects] = useState([]);
   const [showSubjectPicker, setShowSubjectPicker] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { date: initialDate } = useLocalSearchParams();
 
   // Raggruppa classi per anno
   const getYears = () => {
@@ -96,12 +97,12 @@ const CreateSlot = () => {
 
   const loadData = async () => {
     if (!profile?.id) return;
-    
+
     const [classesRes, subjectsRes] = await Promise.all([
       getTeacherClasses(profile.id),
       getTeacherSubjects(profile.id)
     ]);
-    
+
     if (classesRes.data) {
       // Estrai le classi dalla relazione teacher_classes
       const teacherClasses = classesRes.data
@@ -121,7 +122,7 @@ const CreateSlot = () => {
     if (selectedDate) {
       if (isNonWorkingDay(selectedDate)) {
         Alert.alert(
-          'Data non valida', 
+          'Data non valida',
           'Non puoi selezionare domeniche o giorni festivi',
           [{ text: 'OK' }]
         );
@@ -146,7 +147,13 @@ const CreateSlot = () => {
 
   // Se la data iniziale è un giorno non lavorativo, trova il prossimo giorno valido
   useEffect(() => {
-    let currentDate = new Date();
+    let currentDate;
+    if (initialDate) {
+      currentDate = new Date(initialDate + 'T12:00:00'); // Aggiungi ora per evitare problemi timezone
+    } else {
+      currentDate = new Date();
+    }
+
     while (isNonWorkingDay(currentDate)) {
       currentDate.setDate(currentDate.getDate() + 1);
     }
@@ -224,7 +231,7 @@ const CreateSlot = () => {
               <Text style={styles.singleSubjectText}>{subjects[0].name}</Text>
             </View>
           ) : (
-            <Pressable 
+            <Pressable
               style={styles.dropdown}
               onPress={() => setShowSubjectPicker(true)}
             >
@@ -245,17 +252,17 @@ const CreateSlot = () => {
                 key={t.value}
                 style={[
                   styles.typeCard,
-                  type === t.value && { 
+                  type === t.value && {
                     backgroundColor: slotTypeColors[t.value],
                     borderColor: slotTypeColors[t.value],
                   }
                 ]}
                 onPress={() => setType(t.value)}
               >
-                <Icon 
-                  name={t.icon} 
-                  size={20} 
-                  color={type === t.value ? 'white' : theme.colors.text} 
+                <Icon
+                  name={t.icon}
+                  size={20}
+                  color={type === t.value ? 'white' : theme.colors.text}
                 />
                 <Text style={[
                   styles.typeLabel,
@@ -271,9 +278,9 @@ const CreateSlot = () => {
         {/* Classe */}
         <View style={styles.section}>
           <Text style={styles.label}>Classe *</Text>
-          
+
           {classes.length === 0 ? (
-            <Pressable 
+            <Pressable
               style={styles.noClassesContainer}
               onPress={() => router.push('/(main)/classes')}
             >
@@ -345,7 +352,7 @@ const CreateSlot = () => {
         {/* Data */}
         <View style={styles.section}>
           <Text style={styles.label}>Data *</Text>
-          <Pressable 
+          <Pressable
             style={styles.dropdown}
             onPress={() => setShowDatePicker(true)}
           >

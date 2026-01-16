@@ -2,8 +2,7 @@ import { View, Text, StyleSheet, FlatList, TextInput, Pressable, KeyboardAvoidin
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { File, Paths } from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
+import { useUnreadMessagesContext } from '../../../contexts/UnreadMessagesContext';
 import * as MediaLibrary from 'expo-media-library';
 import { hp, wp, formatTime } from '../../../helpers/common';
 import { theme } from '../../../constants/theme';
@@ -37,6 +36,8 @@ const ChatDetail = () => {
   const { chatInfo, otherMember, loading: chatLoading, isGroupChat, getChatTitle } = useChatInfo(id, profile?.id);
   const { messages, loading, sending, sendText, sendImage, sendDocument, pickImage, pickDocument } = useMessages(id, profile?.id);
 
+  const { markChatAsRead } = useUnreadMessagesContext();
+
   useEffect(() => {
     if (messages.length > 0) {
       setTimeout(() => {
@@ -44,6 +45,12 @@ const ChatDetail = () => {
       }, 100);
     }
   }, [messages]);
+
+  useEffect(() => {
+    if (id) {
+      markChatAsRead(id);
+    }
+  }, [id]);
 
   const handleSend = async () => {
     if (!newMessage.trim() || sending) return;

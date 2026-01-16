@@ -46,9 +46,13 @@ const Report = () => {
     if (error) {
       Alert.alert('Errore', error.message || 'Impossibile inviare la segnalazione');
     } else {
+      const isEmailType = selectedType === 'technical' || selectedType === 'suggestion';
+
       Alert.alert(
         'Segnalazione inviata',
-        'La tua segnalazione è stata ricevuta. Verrà esaminata dal personale scolastico.',
+        isEmailType
+          ? 'La tua segnalazione è stata inviata al team di sviluppo.'
+          : 'La tua segnalazione è stata ricevuta. Verrà esaminata dal personale scolastico.',
         [{ text: 'OK', onPress: () => router.back() }]
       );
     }
@@ -66,8 +70,8 @@ const Report = () => {
       <View style={styles.infoCard}>
         <Text style={styles.infoCardTitle}>A cosa serve?</Text>
         <Text style={styles.infoCardText}>
-          Il sistema di segnalazione ti permette di comunicare problemi, 
-          segnalare comportamenti inappropriati o suggerire miglioramenti 
+          Il sistema di segnalazione ti permette di comunicare problemi,
+          segnalare comportamenti inappropriati o suggerire miglioramenti
           direttamente alla tua scuola.
         </Text>
       </View>
@@ -96,25 +100,28 @@ const Report = () => {
 
       <View style={styles.infoCard}>
         <Text style={styles.infoCardTitle}>Chi riceve le segnalazioni?</Text>
-        <Text style={styles.infoCardText}>
-          Le segnalazioni vengono inviate al personale scolastico del tuo istituto 
-          (segreteria, referenti). Non vengono condivise con altri studenti o 
-          persone esterne.
-        </Text>
-      </View>
-
-      <View style={styles.infoCard}>
-        <Text style={styles.infoCardTitle}>Riservatezza</Text>
-        <Text style={styles.infoCardText}>
-          Le tue segnalazioni sono riservate. Il tuo nome sarà visibile solo 
-          al personale autorizzato che gestirà la segnalazione.
-        </Text>
+        <View style={styles.infoList}>
+          <View style={styles.infoListItem}>
+            <Icon name="settings" size={18} color={theme.colors.warning} />
+            <Text style={styles.infoListText}>
+              Problemi tecnici e suggerimenti → team di sviluppo
+            </Text>
+          </View>
+          <View style={styles.infoListItem}>
+            <Icon name="shield" size={18} color={theme.colors.error} />
+            <Text style={styles.infoListText}>
+              Le altre segnalazioni vengono inviate al personale scolastico del tuo istituto
+              (segreteria, referenti). Non vengono condivise con altri studenti o
+              persone esterne.
+            </Text>
+          </View>
+        </View>
       </View>
 
       <View style={styles.warningBox}>
         <Icon name="info" size={20} color={theme.colors.secondary} />
         <Text style={styles.warningText}>
-          Usa questo strumento in modo responsabile. Le segnalazioni false o 
+          Usa questo strumento in modo responsabile. Le segnalazioni false o
           inappropriate potrebbero avere conseguenze disciplinari.
         </Text>
       </View>
@@ -225,7 +232,7 @@ const Report = () => {
         <View style={{ width: 36 }} />
       </View>
 
-      <ScrollView 
+      <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}

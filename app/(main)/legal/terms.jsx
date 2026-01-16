@@ -6,14 +6,14 @@ import { theme } from '../../../constants/theme';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import BackButton from '../../../components/common/BackButton';
 
-const Privacy = () => {
+const Terms = () => {
   const router = useRouter();
 
   return (
     <ScreenWrapper bg={theme.colors.background} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <BackButton router={router} />
-        <Text style={styles.headerTitle}>Privacy Policy</Text>
+        <Text style={styles.headerTitle}>Termini di Servizio</Text>
         <View style={{ width: 36 }} />
       </View>
 
@@ -22,167 +22,185 @@ const Privacy = () => {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.lastUpdate}>Ultimo aggiornamento: Dicembre 2024</Text>
+        <Text style={styles.lastUpdate}>Ultimo aggiornamento: Gennaio 2026</Text>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>1. Introduzione</Text>
+          <Text style={styles.sectionTitle}>1. Accettazione dei termini</Text>
           <Text style={styles.paragraph}>
-            La presente Privacy Policy descrive come TuttoScuola raccoglie, utilizza e 
-            protegge i dati personali degli utenti in conformità con il Regolamento 
-            Generale sulla Protezione dei Dati (GDPR - Regolamento UE 2016/679).
+            Utilizzando l'applicazione TuttoScuola ("App", "Servizio"), accetti di essere 
+            vincolato dai presenti Termini di Servizio. Se non accetti questi termini, 
+            non utilizzare l'applicazione.
           </Text>
           <Text style={styles.paragraph}>
-            Il Titolare del trattamento dei dati è l'istituto scolastico che ha attivato 
-            il servizio TuttoScuola per i propri utenti.
+            L'accesso all'App è riservato agli utenti autorizzati dall'istituto scolastico 
+            che ha attivato il servizio, identificati tramite email con dominio scolastico.
           </Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>2. Dati raccolti</Text>
+          <Text style={styles.sectionTitle}>2. Descrizione del servizio</Text>
           <Text style={styles.paragraph}>
-            Raccogliamo le seguenti categorie di dati personali:
+            TuttoScuola è un'applicazione per la gestione delle attività scolastiche che consente:
           </Text>
-          <Text style={styles.subTitle}>Dati identificativi:</Text>
           <View style={styles.bulletList}>
-            <Text style={styles.bulletItem}>• Nome e cognome</Text>
-            <Text style={styles.bulletItem}>• Indirizzo email scolastico</Text>
-            <Text style={styles.bulletItem}>• Classe di appartenenza (per gli studenti)</Text>
-            <Text style={styles.bulletItem}>• Ruolo (studente, docente, personale)</Text>
-          </View>
-          <Text style={styles.subTitle}>Dati scolastici:</Text>
-          <View style={styles.bulletList}>
-            <Text style={styles.bulletItem}>• Voti e valutazioni</Text>
-            <Text style={styles.bulletItem}>• Presenze e assenze</Text>
-            <Text style={styles.bulletItem}>• Orario delle lezioni</Text>
-            <Text style={styles.bulletItem}>• Compiti assegnati</Text>
-          </View>
-          <Text style={styles.subTitle}>Dati di utilizzo:</Text>
-          <View style={styles.bulletList}>
-            <Text style={styles.bulletItem}>• Messaggi inviati nelle chat</Text>
-            <Text style={styles.bulletItem}>• Log di accesso all'applicazione</Text>
-            <Text style={styles.bulletItem}>• Informazioni sul dispositivo</Text>
+            <Text style={styles.bulletItem}>• Comunicazione tra studenti e docenti tramite chat</Text>
+            <Text style={styles.bulletItem}>• Consultazione e registrazione di voti</Text>
+            <Text style={styles.bulletItem}>• Gestione delle presenze</Text>
+            <Text style={styles.bulletItem}>• Prenotazione di interrogazioni ed esami</Text>
+            <Text style={styles.bulletItem}>• Visualizzazione di compiti e comunicazioni</Text>
+            <Text style={styles.bulletItem}>• Ricezione di notifiche scolastiche</Text>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>3. Base giuridica del trattamento</Text>
+          <Text style={styles.sectionTitle}>3. Registrazione e account</Text>
           <Text style={styles.paragraph}>
-            Il trattamento dei dati personali si basa su:
+            Per utilizzare l'App devi:
           </Text>
           <View style={styles.bulletList}>
-            <Text style={styles.bulletItem}>• Esecuzione di un contratto (fornitura del servizio scolastico)</Text>
-            <Text style={styles.bulletItem}>• Obbligo legale (tenuta del registro elettronico)</Text>
-            <Text style={styles.bulletItem}>• Legittimo interesse (sicurezza e funzionamento del servizio)</Text>
-            <Text style={styles.bulletItem}>• Consenso (per finalità specifiche, ove richiesto)</Text>
+            <Text style={styles.bulletItem}>• Possedere un indirizzo email del dominio scolastico autorizzato</Text>
+            <Text style={styles.bulletItem}>• Fornire informazioni accurate e complete</Text>
+            <Text style={styles.bulletItem}>• Mantenere riservate le credenziali di accesso</Text>
+            <Text style={styles.bulletItem}>• Notificare immediatamente eventuali accessi non autorizzati</Text>
+          </View>
+          <Text style={styles.paragraph}>
+            Sei responsabile di tutte le attività effettuate con il tuo account.
+          </Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>4. Regole di condotta</Text>
+          <Text style={styles.paragraph}>
+            Nell'utilizzo dell'App ti impegni a:
+          </Text>
+          <View style={styles.bulletList}>
+            <Text style={styles.bulletItem}>• Rispettare le norme di comportamento scolastico</Text>
+            <Text style={styles.bulletItem}>• Non inviare contenuti offensivi, volgari o discriminatori</Text>
+            <Text style={styles.bulletItem}>• Non praticare bullismo, molestie o intimidazioni</Text>
+            <Text style={styles.bulletItem}>• Non diffondere informazioni false o fuorvianti</Text>
+            <Text style={styles.bulletItem}>• Non condividere materiale protetto da copyright senza autorizzazione</Text>
+            <Text style={styles.bulletItem}>• Non tentare di accedere ad account o dati altrui</Text>
+            <Text style={styles.bulletItem}>• Non utilizzare l'App per scopi illegali</Text>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>4. Finalità del trattamento</Text>
+          <Text style={styles.sectionTitle}>5. Contenuti degli utenti</Text>
           <Text style={styles.paragraph}>
-            I dati personali sono trattati per le seguenti finalità:
+            Sei responsabile dei contenuti che pubblichi (messaggi, immagini, file). 
+            Pubblicando contenuti nell'App:
           </Text>
           <View style={styles.bulletList}>
-            <Text style={styles.bulletItem}>• Gestione delle attività didattiche</Text>
-            <Text style={styles.bulletItem}>• Comunicazione tra scuola, docenti e studenti</Text>
-            <Text style={styles.bulletItem}>• Registrazione di voti e presenze</Text>
-            <Text style={styles.bulletItem}>• Invio di comunicazioni scolastiche</Text>
-            <Text style={styles.bulletItem}>• Gestione dei compiti e delle scadenze</Text>
-            <Text style={styles.bulletItem}>• Sicurezza e prevenzione di abusi</Text>
+            <Text style={styles.bulletItem}>• Dichiari di avere il diritto di condividerli</Text>
+            <Text style={styles.bulletItem}>• Accetti che siano visibili agli altri utenti autorizzati</Text>
+            <Text style={styles.bulletItem}>• Accetti che possano essere moderati o rimossi se inappropriati</Text>
+          </View>
+          <Text style={styles.paragraph}>
+            Ci riserviamo il diritto di rimuovere contenuti che violano questi termini 
+            o le norme scolastiche, senza preavviso.
+          </Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>6. Sistema di segnalazione</Text>
+          <Text style={styles.paragraph}>
+            L'App dispone di un sistema di segnalazione per:
+          </Text>
+          <View style={styles.bulletList}>
+            <Text style={styles.bulletItem}>• Problemi tecnici e bug</Text>
+            <Text style={styles.bulletItem}>• Contenuti inappropriati</Text>
+            <Text style={styles.bulletItem}>• Comportamenti scorretti</Text>
+            <Text style={styles.bulletItem}>• Suggerimenti di miglioramento</Text>
+          </View>
+          <Text style={styles.paragraph}>
+            Le segnalazioni false o effettuate in malafede possono comportare 
+            conseguenze disciplinari.
+          </Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>7. Proprietà intellettuale</Text>
+          <Text style={styles.paragraph}>
+            L'App, inclusi design, codice, loghi e contenuti originali, è protetta da 
+            diritti di proprietà intellettuale. Non è consentito:
+          </Text>
+          <View style={styles.bulletList}>
+            <Text style={styles.bulletItem}>• Copiare, modificare o distribuire l'App</Text>
+            <Text style={styles.bulletItem}>• Decompilare o fare reverse engineering</Text>
+            <Text style={styles.bulletItem}>• Rimuovere avvisi di copyright</Text>
+            <Text style={styles.bulletItem}>• Utilizzare il marchio TuttoScuola senza autorizzazione</Text>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>5. Conservazione dei dati</Text>
+          <Text style={styles.sectionTitle}>8. Limitazione di responsabilità</Text>
           <Text style={styles.paragraph}>
-            I dati personali sono conservati per il tempo necessario al raggiungimento 
-            delle finalità per cui sono stati raccolti e comunque non oltre:
+            L'App è fornita "così com'è". Nei limiti consentiti dalla legge:
           </Text>
           <View style={styles.bulletList}>
-            <Text style={styles.bulletItem}>• Dati degli account: fino alla disattivazione dell'account o termine del rapporto con l'istituto</Text>
-            <Text style={styles.bulletItem}>• Dati scolastici (voti, presenze): secondo gli obblighi di legge (minimo 10 anni)</Text>
-            <Text style={styles.bulletItem}>• Messaggi nelle chat: 1 anno dalla creazione</Text>
-            <Text style={styles.bulletItem}>• Log di accesso: 6 mesi</Text>
+            <Text style={styles.bulletItem}>• Non garantiamo che il servizio sia sempre disponibile o privo di errori</Text>
+            <Text style={styles.bulletItem}>• Non siamo responsabili per danni derivanti dall'uso dell'App</Text>
+            <Text style={styles.bulletItem}>• Non siamo responsabili per contenuti pubblicati dagli utenti</Text>
+            <Text style={styles.bulletItem}>• Non siamo responsabili per perdita di dati dovuta a cause esterne</Text>
+          </View>
+          <Text style={styles.paragraph}>
+            Ci impegniamo a garantire la sicurezza e l'affidabilità del servizio con 
+            la massima diligenza.
+          </Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>9. Sospensione e terminazione</Text>
+          <Text style={styles.paragraph}>
+            Possiamo sospendere o terminare l'accesso all'App in caso di:
+          </Text>
+          <View style={styles.bulletList}>
+            <Text style={styles.bulletItem}>• Violazione dei presenti termini</Text>
+            <Text style={styles.bulletItem}>• Comportamento inappropriato o illegale</Text>
+            <Text style={styles.bulletItem}>• Richiesta dell'istituto scolastico</Text>
+            <Text style={styles.bulletItem}>• Fine del rapporto con l'istituto (es. trasferimento, diploma)</Text>
+          </View>
+          <Text style={styles.paragraph}>
+            L'istituto scolastico può richiedere la disattivazione di account specifici.
+          </Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>10. Modifiche al servizio</Text>
+          <Text style={styles.paragraph}>
+            Ci riserviamo il diritto di:
+          </Text>
+          <View style={styles.bulletList}>
+            <Text style={styles.bulletItem}>• Modificare o aggiornare l'App in qualsiasi momento</Text>
+            <Text style={styles.bulletItem}>• Aggiungere o rimuovere funzionalità</Text>
+            <Text style={styles.bulletItem}>• Interrompere il servizio con ragionevole preavviso</Text>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>6. Condivisione dei dati</Text>
+          <Text style={styles.sectionTitle}>11. Modifiche ai termini</Text>
           <Text style={styles.paragraph}>
-            I dati personali possono essere condivisi con:
-          </Text>
-          <View style={styles.bulletList}>
-            <Text style={styles.bulletItem}>• Personale scolastico autorizzato</Text>
-            <Text style={styles.bulletItem}>• Fornitori di servizi tecnici (hosting, manutenzione)</Text>
-            <Text style={styles.bulletItem}>• Autorità competenti, se richiesto dalla legge</Text>
-          </View>
-          <Text style={styles.paragraph}>
-            I dati non vengono ceduti a terzi per finalità di marketing o venduti a soggetti esterni.
+            Possiamo aggiornare questi Termini di Servizio. Le modifiche significative 
+            saranno comunicate tramite notifica nell'App. L'uso continuato dell'App 
+            dopo le modifiche costituisce accettazione dei nuovi termini.
           </Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>7. Sicurezza dei dati</Text>
+          <Text style={styles.sectionTitle}>12. Legge applicabile</Text>
           <Text style={styles.paragraph}>
-            Adottiamo misure tecniche e organizzative appropriate per proteggere i dati 
-            personali, tra cui:
-          </Text>
-          <View style={styles.bulletList}>
-            <Text style={styles.bulletItem}>• Crittografia dei dati in transito e a riposo</Text>
-            <Text style={styles.bulletItem}>• Autenticazione sicura degli utenti</Text>
-            <Text style={styles.bulletItem}>• Controlli di accesso basati sui ruoli</Text>
-            <Text style={styles.bulletItem}>• Backup regolari dei dati</Text>
-            <Text style={styles.bulletItem}>• Monitoraggio della sicurezza</Text>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>8. Diritti degli interessati</Text>
-          <Text style={styles.paragraph}>
-            In conformità al GDPR, hai diritto di:
-          </Text>
-          <View style={styles.bulletList}>
-            <Text style={styles.bulletItem}>• Accedere ai tuoi dati personali</Text>
-            <Text style={styles.bulletItem}>• Rettificare dati inesatti</Text>
-            <Text style={styles.bulletItem}>• Richiedere la cancellazione dei dati (ove applicabile)</Text>
-            <Text style={styles.bulletItem}>• Limitare il trattamento</Text>
-            <Text style={styles.bulletItem}>• Opporti al trattamento</Text>
-            <Text style={styles.bulletItem}>• Richiedere la portabilità dei dati</Text>
-            <Text style={styles.bulletItem}>• Revocare il consenso (ove il trattamento si basi sul consenso)</Text>
-          </View>
-          <Text style={styles.paragraph}>
-            Per esercitare i tuoi diritti, contatta la segreteria del tuo istituto scolastico.
+            I presenti termini sono regolati dalla legge italiana. Per qualsiasi 
+            controversia sarà competente il Foro del luogo di residenza dell'utente 
+            se consumatore, altrimenti il Foro di Milano.
           </Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>9. Dati dei minori</Text>
+          <Text style={styles.sectionTitle}>13. Contatti</Text>
           <Text style={styles.paragraph}>
-            TuttoScuola è utilizzato anche da minori nell'ambito delle attività scolastiche. 
-            Il trattamento dei dati dei minori avviene sotto la responsabilità dell'istituto 
-            scolastico e, ove necessario, con il consenso dei genitori o tutori legali.
-          </Text>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>10. Modifiche alla Privacy Policy</Text>
-          <Text style={styles.paragraph}>
-            Ci riserviamo il diritto di aggiornare questa Privacy Policy. Le modifiche 
-            saranno comunicate tramite l'applicazione. Ti invitiamo a consultare 
-            periodicamente questa pagina.
-          </Text>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>11. Contatti</Text>
-          <Text style={styles.paragraph}>
-            Per domande relative al trattamento dei dati personali, contatta il 
-            Responsabile della Protezione dei Dati (DPO) del tuo istituto scolastico 
-            tramite la segreteria.
-          </Text>
-          <Text style={styles.paragraph}>
-            Hai inoltre il diritto di proporre reclamo all'Autorità Garante per la 
-            Protezione dei Dati Personali (www.garanteprivacy.it).
+            Per domande sui presenti termini, contatta la segreteria del tuo istituto 
+            scolastico o utilizza la funzione "Segnala un problema" nell'App per 
+            questioni tecniche.
           </Text>
         </View>
 
@@ -196,7 +214,7 @@ const Privacy = () => {
   );
 };
 
-export default Privacy;
+export default Terms;
 
 const styles = StyleSheet.create({
   header: {
@@ -216,7 +234,7 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: wp(5),
-    paddingBottom: hp(8),
+    paddingBottom: hp(6),
   },
   lastUpdate: {
     fontSize: hp(1.3),
@@ -232,13 +250,6 @@ const styles = StyleSheet.create({
     fontWeight: theme.fonts.bold,
     color: theme.colors.text,
     marginBottom: hp(1),
-  },
-  subTitle: {
-    fontSize: hp(1.5),
-    fontWeight: theme.fonts.semiBold,
-    color: theme.colors.text,
-    marginTop: hp(1),
-    marginBottom: hp(0.5),
   },
   paragraph: {
     fontSize: hp(1.5),

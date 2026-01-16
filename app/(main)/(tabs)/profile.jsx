@@ -173,6 +173,17 @@ const Profile = () => {
             </Pressable>
           )}
 
+          <Pressable
+            style={styles.menuItem}
+            onPress={() => router.push('/(main)/settings/notifications')}
+          >
+            <View style={styles.menuIcon}>
+              <Icon name="bell" size={22} color={theme.colors.text} />
+            </View>
+            <Text style={styles.menuText}>Impostazioni notifiche</Text>
+            <Icon name="chevronRight" size={20} color={theme.colors.textLight} />
+          </Pressable>
+
         </View>
 
         <View style={styles.section}>
@@ -223,14 +234,16 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     ...theme.shadows.md,
   },
-  roleBadge: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    paddingHorizontal: wp(3),
-    paddingVertical: hp(0.5),
-    borderRadius: theme.radius.full,
-  },
+roleBadge: {
+  position: 'absolute',
+  bottom: 0,
+  right: 0,
+  paddingHorizontal: wp(3),
+  paddingVertical: hp(0.5),
+  borderRadius: theme.radius.full,
+  borderWidth: 2,
+  borderColor: 'white',
+},
   roleText: {
     fontSize: hp(1.3),
     fontWeight: theme.fonts.semiBold,

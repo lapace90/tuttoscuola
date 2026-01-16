@@ -14,14 +14,16 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.tuttoscuola.app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.tuttoscuola.app"
     },
     "web": {
       "favicon": "./assets/icon.png"
@@ -35,15 +37,28 @@
           "cameraPermission": "L'app accede alla fotocamera per scattare foto profilo."
         }
       ],
+      "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#1E3A8A",
+          "sounds": []
+        }
+      ],
       [
         "expo-media-library",
         {
-          "photosPermission": "L'app accede alla galleria per salvare le immagini.",
+          "photosPermission": "L'app salva le immagini nella galleria.",
           "savePhotosPermission": "L'app salva le immagini nella galleria.",
           "isAccessMediaLocationEnabled": true
         }
-      ],
-      "expo-web-browser"
-    ]
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "your-project-id"
+      }
+    }
   }
 }

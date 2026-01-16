@@ -35,12 +35,12 @@ export const useReports = () => {
 
   const submit = async ({ type, title, description, relatedId = null, relatedType = null }) => {
     if (!profile?.id) {
-      return { error: 'Non autenticato' };
+      return { error: { message: 'Non autenticato' } };
     }
 
     const instituteId = profile?.institute_id || profile?.class?.institute_id || profile?.institute?.id;
 
-    const { data, error } = await createReport({
+    const { data, error, emailSent } = await createReport({
       reporter_id: profile.id,
       institute_id: instituteId,
       type,
@@ -49,13 +49,13 @@ export const useReports = () => {
       related_id: relatedId,
       related_type: relatedType,
       status: 'pending'
-    });
+    }, profile); // Passa profile per l'email
 
     if (!error && data) {
       setReports(prev => [data, ...prev]);
     }
 
-    return { data, error };
+    return { data, error, emailSent };
   };
 
   const getTypeConfig = (type) => {

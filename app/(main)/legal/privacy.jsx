@@ -22,18 +22,20 @@ const Privacy = () => {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.lastUpdate}>Ultimo aggiornamento: Dicembre 2024</Text>
+        <Text style={styles.lastUpdate}>Ultimo aggiornamento: Gennaio 2026</Text>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>1. Introduzione</Text>
           <Text style={styles.paragraph}>
-            La presente Privacy Policy descrive come TuttoScuola raccoglie, utilizza e 
-            protegge i dati personali degli utenti in conformità con il Regolamento 
-            Generale sulla Protezione dei Dati (GDPR - Regolamento UE 2016/679).
+            La presente Privacy Policy descrive come TuttoScuola ("noi", "nostro" o "l'App") 
+            raccoglie, utilizza e protegge i dati personali degli utenti in conformità con 
+            il Regolamento Generale sulla Protezione dei Dati (GDPR - Regolamento UE 2016/679) 
+            e la normativa italiana in materia di protezione dei dati personali.
           </Text>
           <Text style={styles.paragraph}>
             Il Titolare del trattamento dei dati è l'istituto scolastico che ha attivato 
-            il servizio TuttoScuola per i propri utenti.
+            il servizio TuttoScuola per i propri utenti. Lo sviluppatore dell'applicazione 
+            agisce in qualità di Responsabile del trattamento.
           </Text>
         </View>
 
@@ -47,20 +49,21 @@ const Privacy = () => {
             <Text style={styles.bulletItem}>• Nome e cognome</Text>
             <Text style={styles.bulletItem}>• Indirizzo email scolastico</Text>
             <Text style={styles.bulletItem}>• Classe di appartenenza (per gli studenti)</Text>
-            <Text style={styles.bulletItem}>• Ruolo (studente, docente, personale)</Text>
+            <Text style={styles.bulletItem}>• Ruolo (studente, docente)</Text>
+            <Text style={styles.bulletItem}>• Foto profilo (facoltativa)</Text>
           </View>
           <Text style={styles.subTitle}>Dati scolastici:</Text>
           <View style={styles.bulletList}>
             <Text style={styles.bulletItem}>• Voti e valutazioni</Text>
             <Text style={styles.bulletItem}>• Presenze e assenze</Text>
-            <Text style={styles.bulletItem}>• Orario delle lezioni</Text>
+            <Text style={styles.bulletItem}>• Prenotazioni interrogazioni</Text>
             <Text style={styles.bulletItem}>• Compiti assegnati</Text>
           </View>
           <Text style={styles.subTitle}>Dati di utilizzo:</Text>
           <View style={styles.bulletList}>
             <Text style={styles.bulletItem}>• Messaggi inviati nelle chat</Text>
-            <Text style={styles.bulletItem}>• Log di accesso all'applicazione</Text>
-            <Text style={styles.bulletItem}>• Informazioni sul dispositivo</Text>
+            <Text style={styles.bulletItem}>• File e immagini condivisi</Text>
+            <Text style={styles.bulletItem}>• Token per notifiche push (se autorizzate)</Text>
           </View>
         </View>
 
@@ -70,85 +73,88 @@ const Privacy = () => {
             Il trattamento dei dati personali si basa su:
           </Text>
           <View style={styles.bulletList}>
-            <Text style={styles.bulletItem}>• Esecuzione di un contratto (fornitura del servizio scolastico)</Text>
-            <Text style={styles.bulletItem}>• Obbligo legale (tenuta del registro elettronico)</Text>
-            <Text style={styles.bulletItem}>• Legittimo interesse (sicurezza e funzionamento del servizio)</Text>
-            <Text style={styles.bulletItem}>• Consenso (per finalità specifiche, ove richiesto)</Text>
+            <Text style={styles.bulletItem}>• Esecuzione di un contratto: fornitura del servizio scolastico digitale</Text>
+            <Text style={styles.bulletItem}>• Obbligo legale: tenuta del registro elettronico secondo la normativa scolastica</Text>
+            <Text style={styles.bulletItem}>• Legittimo interesse: sicurezza e corretto funzionamento del servizio</Text>
+            <Text style={styles.bulletItem}>• Consenso: per funzionalità opzionali come le notifiche push</Text>
           </View>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>4. Finalità del trattamento</Text>
           <Text style={styles.paragraph}>
-            I dati personali sono trattati per le seguenti finalità:
+            I dati personali sono trattati esclusivamente per:
           </Text>
           <View style={styles.bulletList}>
-            <Text style={styles.bulletItem}>• Gestione delle attività didattiche</Text>
+            <Text style={styles.bulletItem}>• Gestione delle attività didattiche e scolastiche</Text>
             <Text style={styles.bulletItem}>• Comunicazione tra scuola, docenti e studenti</Text>
-            <Text style={styles.bulletItem}>• Registrazione di voti e presenze</Text>
+            <Text style={styles.bulletItem}>• Registrazione e consultazione di voti e presenze</Text>
+            <Text style={styles.bulletItem}>• Gestione delle prenotazioni per interrogazioni</Text>
             <Text style={styles.bulletItem}>• Invio di comunicazioni scolastiche</Text>
             <Text style={styles.bulletItem}>• Gestione dei compiti e delle scadenze</Text>
             <Text style={styles.bulletItem}>• Sicurezza e prevenzione di abusi</Text>
           </View>
+          <Text style={styles.paragraph}>
+            I dati NON vengono utilizzati per profilazione, marketing o finalità commerciali.
+          </Text>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>5. Conservazione dei dati</Text>
           <Text style={styles.paragraph}>
-            I dati personali sono conservati per il tempo necessario al raggiungimento 
-            delle finalità per cui sono stati raccolti e comunque non oltre:
+            I dati personali sono conservati per il tempo strettamente necessario:
           </Text>
           <View style={styles.bulletList}>
-            <Text style={styles.bulletItem}>• Dati degli account: fino alla disattivazione dell'account o termine del rapporto con l'istituto</Text>
-            <Text style={styles.bulletItem}>• Dati scolastici (voti, presenze): secondo gli obblighi di legge (minimo 10 anni)</Text>
-            <Text style={styles.bulletItem}>• Messaggi nelle chat: 1 anno dalla creazione</Text>
-            <Text style={styles.bulletItem}>• Log di accesso: 6 mesi</Text>
+            <Text style={styles.bulletItem}>• Dati account: fino alla disattivazione o termine del rapporto con l'istituto</Text>
+            <Text style={styles.bulletItem}>• Dati scolastici (voti, presenze): secondo obblighi di legge (minimo 10 anni)</Text>
+            <Text style={styles.bulletItem}>• Messaggi nelle chat: 2 anni dalla creazione</Text>
+            <Text style={styles.bulletItem}>• Segnalazioni: 5 anni dalla risoluzione</Text>
           </View>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>6. Condivisione dei dati</Text>
           <Text style={styles.paragraph}>
-            I dati personali possono essere condivisi con:
+            I dati personali possono essere condivisi esclusivamente con:
           </Text>
           <View style={styles.bulletList}>
-            <Text style={styles.bulletItem}>• Personale scolastico autorizzato</Text>
-            <Text style={styles.bulletItem}>• Fornitori di servizi tecnici (hosting, manutenzione)</Text>
+            <Text style={styles.bulletItem}>• Personale scolastico autorizzato (docenti, segreteria)</Text>
+            <Text style={styles.bulletItem}>• Supabase Inc. (provider infrastruttura cloud - server UE)</Text>
             <Text style={styles.bulletItem}>• Autorità competenti, se richiesto dalla legge</Text>
           </View>
           <Text style={styles.paragraph}>
-            I dati non vengono ceduti a terzi per finalità di marketing o venduti a soggetti esterni.
+            I dati NON vengono venduti, ceduti a terzi per marketing, né trasferiti 
+            fuori dall'Unione Europea.
           </Text>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>7. Sicurezza dei dati</Text>
           <Text style={styles.paragraph}>
-            Adottiamo misure tecniche e organizzative appropriate per proteggere i dati 
-            personali, tra cui:
+            Adottiamo misure tecniche e organizzative adeguate:
           </Text>
           <View style={styles.bulletList}>
-            <Text style={styles.bulletItem}>• Crittografia dei dati in transito e a riposo</Text>
-            <Text style={styles.bulletItem}>• Autenticazione sicura degli utenti</Text>
-            <Text style={styles.bulletItem}>• Controlli di accesso basati sui ruoli</Text>
-            <Text style={styles.bulletItem}>• Backup regolari dei dati</Text>
-            <Text style={styles.bulletItem}>• Monitoraggio della sicurezza</Text>
+            <Text style={styles.bulletItem}>• Crittografia dei dati in transito (HTTPS/TLS)</Text>
+            <Text style={styles.bulletItem}>• Crittografia dei dati a riposo (AES-256)</Text>
+            <Text style={styles.bulletItem}>• Autenticazione sicura con verifica email</Text>
+            <Text style={styles.bulletItem}>• Controlli di accesso basati sui ruoli (RLS)</Text>
+            <Text style={styles.bulletItem}>• Backup giornalieri automatici</Text>
           </View>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>8. Diritti degli interessati</Text>
           <Text style={styles.paragraph}>
-            In conformità al GDPR, hai diritto di:
+            In conformità al GDPR (artt. 15-22), hai diritto di:
           </Text>
           <View style={styles.bulletList}>
-            <Text style={styles.bulletItem}>• Accedere ai tuoi dati personali</Text>
-            <Text style={styles.bulletItem}>• Rettificare dati inesatti</Text>
-            <Text style={styles.bulletItem}>• Richiedere la cancellazione dei dati (ove applicabile)</Text>
-            <Text style={styles.bulletItem}>• Limitare il trattamento</Text>
-            <Text style={styles.bulletItem}>• Opporti al trattamento</Text>
-            <Text style={styles.bulletItem}>• Richiedere la portabilità dei dati</Text>
-            <Text style={styles.bulletItem}>• Revocare il consenso (ove il trattamento si basi sul consenso)</Text>
+            <Text style={styles.bulletItem}>• Accesso: ottenere copia dei tuoi dati personali</Text>
+            <Text style={styles.bulletItem}>• Rettifica: correggere dati inesatti o incompleti</Text>
+            <Text style={styles.bulletItem}>• Cancellazione: richiedere la cancellazione (ove applicabile)</Text>
+            <Text style={styles.bulletItem}>• Limitazione: limitare il trattamento in determinati casi</Text>
+            <Text style={styles.bulletItem}>• Portabilità: ricevere i dati in formato strutturato</Text>
+            <Text style={styles.bulletItem}>• Opposizione: opporti al trattamento</Text>
+            <Text style={styles.bulletItem}>• Revoca consenso: ritirare il consenso in qualsiasi momento</Text>
           </View>
           <Text style={styles.paragraph}>
             Per esercitare i tuoi diritti, contatta la segreteria del tuo istituto scolastico.
@@ -159,30 +165,43 @@ const Privacy = () => {
           <Text style={styles.sectionTitle}>9. Dati dei minori</Text>
           <Text style={styles.paragraph}>
             TuttoScuola è utilizzato anche da minori nell'ambito delle attività scolastiche. 
-            Il trattamento dei dati dei minori avviene sotto la responsabilità dell'istituto 
-            scolastico e, ove necessario, con il consenso dei genitori o tutori legali.
+            Il trattamento dei dati dei minori di 14 anni avviene sotto la responsabilità 
+            dell'istituto scolastico e con il consenso dei genitori o tutori legali, 
+            in conformità all'art. 8 del GDPR e all'art. 2-quinquies del Codice Privacy italiano.
           </Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>10. Modifiche alla Privacy Policy</Text>
+          <Text style={styles.sectionTitle}>10. Cookie e tecnologie simili</Text>
+          <Text style={styles.paragraph}>
+            L'applicazione mobile non utilizza cookie. Vengono memorizzati localmente 
+            sul dispositivo solo i dati necessari per l'autenticazione (token di sessione) 
+            e le preferenze utente.
+          </Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>11. Modifiche alla Privacy Policy</Text>
           <Text style={styles.paragraph}>
             Ci riserviamo il diritto di aggiornare questa Privacy Policy. Le modifiche 
-            saranno comunicate tramite l'applicazione. Ti invitiamo a consultare 
-            periodicamente questa pagina.
+            significative saranno comunicate tramite notifica nell'applicazione. 
+            Ti invitiamo a consultare periodicamente questa pagina.
           </Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>11. Contatti</Text>
+          <Text style={styles.sectionTitle}>12. Contatti e reclami</Text>
           <Text style={styles.paragraph}>
-            Per domande relative al trattamento dei dati personali, contatta il 
-            Responsabile della Protezione dei Dati (DPO) del tuo istituto scolastico 
-            tramite la segreteria.
+            Per domande sul trattamento dei dati personali, contatta il Responsabile 
+            della Protezione dei Dati (DPO) del tuo istituto scolastico tramite la segreteria.
           </Text>
           <Text style={styles.paragraph}>
-            Hai inoltre il diritto di proporre reclamo all'Autorità Garante per la 
-            Protezione dei Dati Personali (www.garanteprivacy.it).
+            Per segnalazioni tecniche relative all'app, usa la funzione "Segnala un problema" 
+            nelle impostazioni.
+          </Text>
+          <Text style={styles.paragraph}>
+            Hai diritto di proporre reclamo all'Autorità Garante per la Protezione dei 
+            Dati Personali: www.garanteprivacy.it
           </Text>
         </View>
 

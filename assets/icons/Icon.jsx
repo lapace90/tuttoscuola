@@ -37,6 +37,8 @@ const iconMap = {
   alertCircle: { lib: 'feather', name: 'alert-circle' },
   checkCircle: { lib: 'feather', name: 'check-circle' },
   alertTriangle: { lib: 'feather', name: 'alert-triangle' },
+  userCheck: { lib: 'feather', name: 'user-check' },
+  userX: { lib: 'feather', name: 'user-x' },
 
   // Calendar
   calendar: { lib: 'feather', name: 'calendar' },
@@ -69,6 +71,7 @@ const iconMap = {
   briefcase: { lib: 'feather', name: 'briefcase' },
   refresh: { lib: 'feather', name: 'rotate-ccw' },
   award: { lib: 'feather', name: 'award' },
+  tag: { lib: 'feather', name: 'tag' },
 
   // Material Icons (per icone non disponibili in Feather)
   school: { lib: 'material', name: 'school' },

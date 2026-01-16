@@ -103,7 +103,7 @@ const About = () => {
             <View style={styles.supportNote}>
               <Icon name="info" size={16} color={theme.colors.textLight} />
               <Text style={styles.supportNoteText}>
-                Per assistenza contatta la segreteria del tuo istituto
+                Per ulteriore assistenza contatta la segreteria del tuo istituto
               </Text>
             </View>
           </View>

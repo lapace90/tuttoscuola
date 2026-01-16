@@ -8,6 +8,7 @@ import { getUserChats } from '../../../services/chatService';
 import { useClassChats } from '../../../hooks/useClassChats';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import Icon from '../../../assets/icons/Icon';
+import { useUnreadMessagesContext } from '../../../contexts/UnreadMessagesContext';
 
 const Chats = () => {
   const router = useRouter();
@@ -17,6 +18,7 @@ const Chats = () => {
   const [refreshing, setRefreshing] = useState(false);
 
   const { classChats, refresh: refreshClassChats } = useClassChats();
+  const { getUnreadCount } = useUnreadMessagesContext();
 
   useEffect(() => {
     if (profile?.id) {
@@ -88,7 +90,6 @@ const Chats = () => {
               </Text>
             )}
           </View>
-          
           {item.lastMessage ? (
             <Text style={styles.lastMessage} numberOfLines={1}>
               {item.lastMessage.sender?.first_name}: {item.lastMessage.content}
@@ -97,6 +98,11 @@ const Chats = () => {
             <Text style={styles.noMessage}>Nessun messaggio</Text>
           )}
         </View>
+        {getUnreadCount(item.id) > 0 && (
+          <View style={styles.unreadBadge}>
+            <Text style={styles.unreadText}>{getUnreadCount(item.id)}</Text>
+          </View>
+        )}
       </Pressable>
     );
   };
@@ -105,7 +111,7 @@ const Chats = () => {
     <ScreenWrapper bg={theme.colors.background} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <Text style={styles.title}>Chat</Text>
-        <Pressable 
+        <Pressable
           style={styles.newChatButton}
           onPress={() => router.push('/(main)/chat/new')}
         >
@@ -158,7 +164,7 @@ const Chats = () => {
               {loading ? 'Caricamento...' : 'Nessuna chat'}
             </Text>
             {!loading && (
-              <Pressable 
+              <Pressable
                 style={styles.startChatBtn}
                 onPress={() => router.push('/(main)/chat/new')}
               >
@@ -245,6 +251,8 @@ const styles = StyleSheet.create({
   chatTime: {
     fontSize: hp(1.4),
     color: theme.colors.textLight,
+    marginRight: wp(3),
+    marginTop: hp(2),
   },
   lastMessage: {
     fontSize: hp(1.5),
@@ -321,5 +329,19 @@ const styles = StyleSheet.create({
     fontSize: hp(1.4),
     color: theme.colors.secondary,
     marginTop: 2,
+  },
+  unreadBadge: {
+    backgroundColor: theme.colors.primary,
+    borderRadius: 12,
+    minWidth: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+  },
+  unreadText: {
+    color: 'white',
+    fontSize: hp(1.3),
+    fontWeight: 'bold',
   },
 });

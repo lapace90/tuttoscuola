@@ -57,13 +57,13 @@ const Calendar = () => {
   const generateDays = () => {
     const today = new Date();
     const daysList = [];
-    
+
     for (let i = -DAYS_PAST; i <= DAYS_FUTURE; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       daysList.push(date);
     }
-    
+
     setDays(daysList);
   };
 
@@ -80,7 +80,7 @@ const Calendar = () => {
     if (!profile) return;
 
     setLoading(true);
-    
+
     const today = new Date();
     const startDate = new Date(today);
     startDate.setDate(today.getDate() - DAYS_PAST);
@@ -115,7 +115,10 @@ const Calendar = () => {
   };
 
   const formatDateKey = (date) => {
-    return date.toISOString().split('T')[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   const isToday = (date) => {
@@ -199,7 +202,7 @@ const Calendar = () => {
         <View style={[styles.slotType, { backgroundColor: slotTypeColors[slot.type] || slotTypeColors.altro }]}>
           <Text style={styles.slotTypeText}>{slot.type}</Text>
         </View>
-        
+
         <View style={styles.slotInfo}>
           <Text style={styles.slotSubject}>{slot.subject}</Text>
           <View style={styles.slotTimeRow}>
@@ -260,28 +263,31 @@ const Calendar = () => {
         <View style={styles.headerActions}>
           {profile?.role === 'teacher' && (
             <>
-              <Pressable 
+              <Pressable
                 style={styles.secondaryButton}
                 onPress={() => router.push('/(main)/grades/manage')}
               >
                 <Icon name="fileText" size={22} color={theme.colors.primary} />
               </Pressable>
-              <Pressable 
+              <Pressable
                 style={styles.secondaryButton}
                 onPress={() => router.push('/(main)/attendance')}
               >
                 <Icon name="clipboard" size={22} color={theme.colors.primary} />
               </Pressable>
-              <Pressable 
+              <Pressable
                 style={styles.addButton}
-                onPress={() => router.push('/(main)/slot/create')}
+                onPress={() => router.push({
+                  pathname: '/(main)/slot/create',
+                  params: { date: formatDateKey(selectedDate) }
+                })}
               >
                 <Icon name="plus" size={24} color="white" />
               </Pressable>
             </>
           )}
           {profile?.role === 'student' && (
-            <Pressable 
+            <Pressable
               style={styles.secondaryButton}
               onPress={() => router.push('/(main)/grades')}
             >
@@ -306,7 +312,7 @@ const Calendar = () => {
             offset: wp(14) * index,
             index,
           })}
-          onScrollToIndexFailed={() => {}}
+          onScrollToIndexFailed={() => { }}
         />
       </View>
 
@@ -332,9 +338,12 @@ const Calendar = () => {
             <Icon name="calendar" size={48} color={theme.colors.textLight} />
             <Text style={styles.emptyText}>Nessun evento per questo giorno</Text>
             {profile?.role === 'teacher' && (
-              <Pressable 
+              <Pressable
                 style={styles.emptyButton}
-                onPress={() => router.push('/(main)/slot/create')}
+                onPress={() => router.push({
+                  pathname: '/(main)/slot/create',
+                  params: { date: formatDateKey(selectedDate) }
+                })}
               >
                 <Text style={styles.emptyButtonText}>+ Crea slot</Text>
               </Pressable>

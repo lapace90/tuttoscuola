@@ -1,168 +1,194 @@
 import { View, Text, StyleSheet, FlatList, Pressable, RefreshControl, Alert } from 'react-native';
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { hp, wp, getRelativeTime } from '../../../helpers/common';
+import { hp, wp } from '../../../helpers/common';
 import { theme } from '../../../constants/theme';
-import { useNotifications } from '../../../hooks/useNotifications';
+import { useNotifications } from '../../../contexts/NotificationsContext';
+import { NOTIFICATION_TYPES, formatNotificationTime, deleteNotification, clearAllNotifications } from '../../../services/notificationService';
+import { useAuth } from '../../../contexts/AuthContext';
 import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import BackButton from '../../../components/common/BackButton';
 import Icon from '../../../assets/icons/Icon';
 
 const Notifications = () => {
   const router = useRouter();
-  const { 
-    notifications, 
-    unreadCount,
-    loading, 
-    refreshing, 
+  const { profile } = useAuth();
+  const {
+    notifications,
+    loading,
     refresh,
-    markRead,
-    markAllRead,
-    remove,
-    getTypeConfig
+    markNotificationAsRead,
+    markAllNotificationsAsRead,
+    unreadCount
   } = useNotifications();
+  const [refreshing, setRefreshing] = useState(false);
 
-  const handlePress = async (notification) => {
-    if (!notification.read) {
-      await markRead(notification.id);
-    }
-
-    const config = getTypeConfig(notification.type);
-    if (config.route) {
-      // If notification has specific data, append to route
-      if (notification.data?.id) {
-        router.push(`${config.route}/${notification.data.id}`);
-      } else {
-        router.push(config.route);
-      }
-    }
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refresh();
+    setRefreshing(false);
   };
 
-  const handleDelete = (notification) => {
-    Alert.alert(
-      'Elimina notifica',
-      'Vuoi eliminare questa notifica?',
-      [
-        { text: 'Annulla', style: 'cancel' },
-        {
-          text: 'Elimina',
-          style: 'destructive',
-          onPress: () => remove(notification.id)
+  const handleNotificationPress = async (notification) => {
+    // Segna come letta
+    if (!notification.read) {
+      await markNotificationAsRead(notification.id);
+    }
+
+    // Naviga in base al tipo
+    const typeConfig = NOTIFICATION_TYPES[notification.type];
+    const data = notification.data || {};
+
+    switch (notification.type) {
+      case 'message':
+        if (data.chat_id) {
+          router.push(`/(main)/chat/${data.chat_id}`);
         }
-      ]
-    );
+        break;
+      case 'slot':
+      case 'booking':
+        if (data.slot_id) {
+          router.push(`/(main)/slot/${data.slot_id}`);
+        }
+        break;
+      case 'grade':
+        router.push('/(main)/grades');
+        break;
+      case 'announcement':
+        router.push('/(main)/announcements');
+        break;
+      case 'admin_role':
+        router.push('/(main)/profile');
+        break;
+      default:
+        // Nessuna navigazione
+        break;
+    }
   };
 
   const handleMarkAllRead = () => {
-    if (unreadCount === 0) return;
-    
     Alert.alert(
       'Segna tutte come lette',
       'Vuoi segnare tutte le notifiche come lette?',
       [
         { text: 'Annulla', style: 'cancel' },
-        { text: 'Conferma', onPress: markAllRead }
+        {
+          text: 'Conferma',
+          onPress: async () => {
+            await markAllNotificationsAsRead();
+          }
+        }
+      ]
+    );
+  };
+
+  const handleClearAll = () => {
+    Alert.alert(
+      'Elimina tutte',
+      'Vuoi eliminare tutte le notifiche? Questa azione non può essere annullata.',
+      [
+        { text: 'Annulla', style: 'cancel' },
+        {
+          text: 'Elimina',
+          style: 'destructive',
+          onPress: async () => {
+            await clearAllNotifications(profile.id);
+            refresh();
+          }
+        }
       ]
     );
   };
 
   const renderNotification = ({ item }) => {
-    const config = getTypeConfig(item.type);
+    const typeConfig = NOTIFICATION_TYPES[item.type] || NOTIFICATION_TYPES.announcement;
 
     return (
       <Pressable
-        style={[styles.card, !item.read && styles.cardUnread]}
-        onPress={() => handlePress(item)}
-        onLongPress={() => handleDelete(item)}
+        style={[styles.notificationItem, !item.read && styles.notificationUnread]}
+        onPress={() => handleNotificationPress(item)}
       >
-        <View style={[styles.iconContainer, { backgroundColor: config.color + '20' }]}>
-          <Icon name={config.icon} size={20} color={config.color} />
+        <View style={[styles.iconContainer, { backgroundColor: typeConfig.color + '20' }]}>
+          <Icon name={typeConfig.icon} size={20} color={typeConfig.color} />
         </View>
-        
-        <View style={styles.cardContent}>
-          <View style={styles.cardHeader}>
-            <Text style={[styles.cardTitle, !item.read && styles.cardTitleUnread]}>
-              {item.title}
-            </Text>
-            {!item.read && <View style={styles.unreadDot} />}
-          </View>
-          
+
+        <View style={styles.content}>
+          <Text style={[styles.title, !item.read && styles.titleUnread]} numberOfLines={1}>
+            {item.title}
+          </Text>
           {item.body && (
-            <Text style={styles.cardBody} numberOfLines={2}>
+            <Text style={styles.body} numberOfLines={2}>
               {item.body}
             </Text>
           )}
-          
-          <Text style={styles.cardTime}>{getRelativeTime(item.created_at)}</Text>
+          <Text style={styles.time}>
+            {formatNotificationTime(item.created_at)}
+          </Text>
         </View>
+
+        {!item.read && <View style={styles.unreadDot} />}
       </Pressable>
     );
   };
 
-  const renderSectionHeader = (title, count) => (
-    <View style={styles.sectionHeader}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      {count > 0 && (
-        <View style={styles.countBadge}>
-          <Text style={styles.countText}>{count}</Text>
+  const renderHeader = () => {
+    if (notifications.length === 0) return null;
+
+    return (
+      <View style={styles.listHeader}>
+        <Text style={styles.listHeaderText}>
+          {unreadCount > 0 ? `${unreadCount} non lette` : 'Tutte lette'}
+        </Text>
+        <View style={styles.listHeaderActions}>
+          {unreadCount > 0 && (
+            <Pressable onPress={handleMarkAllRead} style={styles.headerAction}>
+              <Icon name="checkCircle" size={16} color={theme.colors.primary} />
+              <Text style={styles.headerActionText}>Leggi tutte</Text>
+            </Pressable>
+          )}
         </View>
-      )}
+      </View>
+    );
+  };
+
+  const renderEmpty = () => (
+    <View style={styles.emptyContainer}>
+      <View style={styles.emptyIcon}>
+        <Icon name="bell" size={48} color={theme.colors.textLight} />
+      </View>
+      <Text style={styles.emptyTitle}>Nessuna notifica</Text>
+      <Text style={styles.emptyText}>
+        Le tue notifiche appariranno qui
+      </Text>
     </View>
   );
-
-  // Separate unread and read
-  const unreadNotifications = notifications.filter(n => !n.read);
-  const readNotifications = notifications.filter(n => n.read);
-
-  const sections = [];
-  if (unreadNotifications.length > 0) {
-    sections.push({ title: 'Nuove', data: unreadNotifications, count: unreadNotifications.length });
-  }
-  if (readNotifications.length > 0) {
-    sections.push({ title: 'Precedenti', data: readNotifications, count: 0 });
-  }
 
   return (
     <ScreenWrapper bg={theme.colors.background} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <BackButton router={router} />
         <Text style={styles.headerTitle}>Notifiche</Text>
-        {unreadCount > 0 ? (
-          <Pressable style={styles.markAllButton} onPress={handleMarkAllRead}>
-            <Icon name="checkCircle" size={22} color={theme.colors.primary} />
+        {notifications.length > 0 ? (
+          <Pressable onPress={handleClearAll} style={styles.clearButton}>
+            <Icon name="trash" size={20} color={theme.colors.textLight} />
           </Pressable>
         ) : (
           <View style={{ width: 36 }} />
         )}
       </View>
 
-      {notifications.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Icon name="bell" size={64} color={theme.colors.border} />
-          <Text style={styles.emptyTitle}>
-            {loading ? 'Caricamento...' : 'Nessuna notifica'}
-          </Text>
-          <Text style={styles.emptySubtitle}>
-            Le tue notifiche appariranno qui
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={notifications}
-          keyExtractor={(item) => item.id}
-          renderItem={renderNotification}
-          contentContainerStyle={styles.listContent}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={refresh} />
-          }
-          ListHeaderComponent={
-            unreadNotifications.length > 0 && readNotifications.length > 0 ? (
-              renderSectionHeader('Nuove', unreadNotifications.length)
-            ) : null
-          }
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-        />
-      )}
+      <FlatList
+        data={notifications}
+        keyExtractor={(item) => item.id}
+        renderItem={renderNotification}
+        ListHeaderComponent={renderHeader}
+        ListEmptyComponent={renderEmpty}
+        contentContainerStyle={notifications.length === 0 ? styles.emptyList : styles.list}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        showsVerticalScrollIndicator={false}
+      />
     </ScreenWrapper>
   );
 };
@@ -182,111 +208,123 @@ const styles = StyleSheet.create({
     fontWeight: theme.fonts.bold,
     color: theme.colors.text,
   },
-  markAllButton: {
+  clearButton: {
     width: 36,
     height: 36,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  listContent: {
-    paddingHorizontal: wp(5),
+  list: {
+    paddingHorizontal: wp(4),
     paddingBottom: hp(4),
   },
-  sectionHeader: {
+  emptyList: {
+    flex: 1,
+  },
+  listHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: hp(1),
+    marginBottom: hp(1),
+  },
+  listHeaderText: {
+    fontSize: hp(1.4),
+    color: theme.colors.textLight,
+    fontWeight: theme.fonts.medium,
+  },
+  listHeaderActions: {
+    flexDirection: 'row',
+    gap: wp(3),
+  },
+  headerAction: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: wp(2),
-    marginBottom: hp(1.5),
-    marginTop: hp(1),
+    gap: wp(1),
   },
-  sectionTitle: {
+  headerActionText: {
     fontSize: hp(1.4),
-    fontWeight: theme.fonts.semiBold,
-    color: theme.colors.textLight,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    color: theme.colors.primary,
+    fontWeight: theme.fonts.medium,
   },
-  countBadge: {
-    backgroundColor: theme.colors.primary,
-    borderRadius: 10,
-    paddingHorizontal: wp(2),
-    paddingVertical: 2,
-  },
-  countText: {
-    fontSize: hp(1.2),
-    fontWeight: theme.fonts.bold,
-    color: 'white',
-  },
-  card: {
+  notificationItem: {
     flexDirection: 'row',
+    alignItems: 'flex-start',
     backgroundColor: theme.colors.card,
     borderRadius: theme.radius.lg,
     padding: hp(1.5),
-    gap: wp(3),
+    marginBottom: hp(1),
     ...theme.shadows.sm,
   },
-  cardUnread: {
-    backgroundColor: theme.colors.primary + '08',
+  notificationUnread: {
+    backgroundColor: theme.colors.card,
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
   },
   iconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  cardContent: {
+  content: {
     flex: 1,
+    marginLeft: wp(3),
+    
   },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: wp(2),
-  },
-  cardTitle: {
+  title: {
     fontSize: hp(1.6),
     fontWeight: theme.fonts.medium,
     color: theme.colors.text,
-    flex: 1,
   },
-  cardTitleUnread: {
+  titleUnread: {
     fontWeight: theme.fonts.bold,
+  },
+  body: {
+    fontSize: hp(1.4),
+    color: theme.colors.textLight,
+    marginTop: hp(0.3),
+    lineHeight: hp(2),
+  },
+  time: {
+    fontSize: hp(1.2),
+    color: theme.colors.placeholder,
+    marginTop: hp(0.5),
   },
   unreadDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
     backgroundColor: theme.colors.primary,
-  },
-  cardBody: {
-    fontSize: hp(1.4),
-    color: theme.colors.textLight,
-    marginTop: hp(0.3),
-    lineHeight: hp(2),
-  },
-  cardTime: {
-    fontSize: hp(1.2),
-    color: theme.colors.textLight,
+    marginLeft: wp(2),
     marginTop: hp(0.5),
-  },
-  separator: {
-    height: hp(1),
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom: hp(10),
+    paddingHorizontal: wp(10),
+  },
+  emptyIcon: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: theme.colors.card,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: hp(2),
+    ...theme.shadows.sm,
   },
   emptyTitle: {
-    fontSize: hp(1.8),
-    fontWeight: theme.fonts.semiBold,
+    fontSize: hp(2),
+    fontWeight: theme.fonts.bold,
     color: theme.colors.text,
-    marginTop: hp(2),
+    marginBottom: hp(1),
   },
-  emptySubtitle: {
+  emptyText: {
     fontSize: hp(1.5),
     color: theme.colors.textLight,
-    marginTop: hp(0.5),
+    textAlign: 'center',
   },
 });
