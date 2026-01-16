@@ -160,7 +160,7 @@ const Profile = () => {
             <Icon name="chevronRight" size={20} color={theme.colors.textLight} />
           </Pressable>
 
-          {profile?.role === 'teacher' && (
+          {profile?.is_admin && (
             <Pressable
               style={styles.menuItem}
               onPress={() => router.push('/(main)/admin')}

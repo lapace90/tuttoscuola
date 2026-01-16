@@ -15,15 +15,12 @@ export const isUserAdmin = async (userId) => {
 // ==================== PROMOTIONS PERIOD ====================
 
 export const arePromotionsOpen = () => {
-  // TODO: Remettre la restriction après les tests
-  // const now = new Date();
-  // const month = now.getMonth();
-  // const day = now.getDate();
-  // if (month === 5 && day >= 15) return true; // Mi-giugno
-  // if (month >= 6 && month <= 8) return true; // Luglio, Agosto, Settembre
-  // return false;
-  
-  return true; // Per test - rimuovere in produzione
+  const now = new Date();
+  const month = now.getMonth();
+  const day = now.getDate();
+  if (month === 5 && day >= 15) return true; // Mi-giugno
+  if (month >= 6 && month <= 8) return true; // Luglio, Agosto, Settembre
+  return false;
 };
 
 // ==================== ADMIN MANAGEMENT ====================
@@ -220,10 +217,10 @@ export const getNextClass = async (currentClassId, instituteId, autoCreate = fal
   if (!nextClass && autoCreate) {
     const { data: newClass, error: createError } = await supabase
       .from('classes')
-      .insert({ 
-        name: nextClassName, 
-        year: nextYear, 
-        institute_id: instituteId 
+      .insert({
+        name: nextClassName,
+        year: nextYear,
+        institute_id: instituteId
       })
       .select()
       .single();
@@ -231,7 +228,7 @@ export const getNextClass = async (currentClassId, instituteId, autoCreate = fal
     if (createError) {
       return { data: null, error: { message: `Errore creazione classe ${nextClassName}` } };
     }
-    
+
     nextClass = newClass;
   }
 
@@ -300,7 +297,7 @@ export const promoteEntireClass = async (classId, instituteId) => {
 
   // autoCreate = true per creare automaticamente la classe successiva
   const { data: nextClass, graduated, error: nextError } = await getNextClass(classId, instituteId, true);
-  
+
   if (nextError) return { error: nextError };
 
   const results = { promoted: 0, graduated: 0, errors: [], classCreated: willCreateClass ? nextClassName : null };

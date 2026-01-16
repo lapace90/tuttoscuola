@@ -10,16 +10,12 @@ const ALLOWED_DOMAIN = 'cattaneodigitale.it';
  * Validate email domain
  */
 export const validateEmailDomain = (email) => {
-  // DEV: disabilita validazione
+  if (!email) return { valid: false, error: 'Email richiesta' };
+  const domain = email.split('@')[1]?.toLowerCase();
+  if (domain !== ALLOWED_DOMAIN) {
+    return { valid: false, error: `Usa la tua email scolastica (@${ALLOWED_DOMAIN})` };
+  }
   return { valid: true };
-
-  // PROD: riabilita questo
-  // if (!email) return { valid: false, error: 'Email richiesta' };
-  // const domain = email.split('@')[1]?.toLowerCase();
-  // if (domain !== ALLOWED_DOMAIN) {
-  //   return { valid: false, error: `Usa la tua email scolastica (@${ALLOWED_DOMAIN})` };
-  // }
-  // return { valid: true };
 };
 
 /**
@@ -126,15 +122,13 @@ export const signInWithGoogle = async () => {
       path: 'auth/callback'
     });
 
-    console.log('Redirect URL:', redirectUrl); // Debugging line
-
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: redirectUrl,
-        // queryParams: {
-        //   hd: ALLOWED_DOMAIN, // Restrict to school domain
-        // },
+        queryParams: {
+          hd: ALLOWED_DOMAIN,
+        },
       },
     });
 

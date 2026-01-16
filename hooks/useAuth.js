@@ -17,7 +17,6 @@ export const AuthProvider = ({ children }) => {
     // Listen to auth changes
     const { data: { subscription } } = authService.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth event:', event);
         
         if (session?.user) {
           setUser(session.user);
