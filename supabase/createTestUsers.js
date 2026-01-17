@@ -148,8 +148,8 @@ async function setupInstitute() {
       name: 'Istituto Tecnico Cattaneo',
       code: 'MITF01000P',
       address: 'Via Catania 35',
-      city: 'Milano',
-      province: 'MI'
+      city: 'San Miniato',
+      province: 'PI'
     });
 
   if (error) console.error('Errore istituto:', error.message);
