@@ -63,7 +63,8 @@
           "savePhotosPermission": "L'app salva le immagini nella galleria.",
           "isAccessMediaLocationEnabled": true
         }
-      ]
+      ],
+      "expo-font"
     ],
     "extra": {
       "eas": {
