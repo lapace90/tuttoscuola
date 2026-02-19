@@ -1,4 +1,6 @@
 import { supabase } from '../lib/supabase';
+import { createClassChatForAdmin, archiveClassChat } from './chatService';
+import { getCurrentSchoolYear } from '../helpers/common';
 
 // ==================== ADMIN CHECK ====================
 
@@ -62,7 +64,7 @@ export const getAllClasses = async (instituteId) => {
   return { data, error };
 };
 
-export const createClass = async ({ name, year, instituteId }) => {
+export const createClass = async ({ name, year, instituteId, adminId }) => {
   const { data: existing } = await supabase
     .from('classes')
     .select('id')
@@ -79,6 +81,11 @@ export const createClass = async ({ name, year, instituteId }) => {
     .insert({ name, year, institute_id: instituteId })
     .select()
     .single();
+
+  // Crea la chat di classe per l'anno scolastico corrente
+  if (!error && data && adminId) {
+    await createClassChatForAdmin(data.id, name, adminId, getCurrentSchoolYear());
+  }
 
   return { data, error };
 };
@@ -272,7 +279,7 @@ export const changeStudentSection = async (studentId, newClassId) => {
   return { data, error };
 };
 
-export const promoteEntireClass = async (classId, instituteId) => {
+export const promoteEntireClass = async (classId, instituteId, adminId) => {
   const { data: students, error: fetchError } = await getStudentsByClass(classId);
   if (fetchError) return { error: fetchError };
 
@@ -302,23 +309,40 @@ export const promoteEntireClass = async (classId, instituteId) => {
 
   const results = { promoted: 0, graduated: 0, errors: [], classCreated: willCreateClass ? nextClassName : null };
 
-  for (const student of students) {
-    if (graduated) {
-      const { error } = await graduateStudent(student.id);
-      if (error) {
-        results.errors.push(`${student.last_name}: ${error.message}`);
-      } else {
-        results.graduated++;
-      }
+  const studentIds = students.map(s => s.id);
+  const schoolYear = getCurrentSchoolYear();
+
+  if (graduated) {
+    const { error } = await supabase
+      .from('users')
+      .update({ class_id: null })
+      .in('id', studentIds);
+
+    if (error) {
+      results.errors.push(error.message);
     } else {
-      const { error } = await promoteStudent(student.id, nextClass.id);
-      if (error) {
-        results.errors.push(`${student.last_name}: ${error.message}`);
-      } else {
-        results.promoted++;
-      }
+      results.graduated = students.length;
+    }
+  } else {
+    const { error } = await supabase
+      .from('users')
+      .update({ class_id: nextClass.id })
+      .in('id', studentIds);
+
+    if (error) {
+      results.errors.push(error.message);
+    } else {
+      results.promoted = students.length;
+    }
+
+    // Crea chat per la nuova classe se è stata creata automaticamente
+    if (willCreateClass && nextClass && adminId) {
+      await createClassChatForAdmin(nextClass.id, nextClassName, adminId, schoolYear);
     }
   }
+
+  // Archivia la chat della vecchia classe
+  await archiveClassChat(classId, schoolYear);
 
   return { data: results, error: null };
 };

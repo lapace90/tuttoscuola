@@ -5,52 +5,62 @@ import { useAuth } from '../contexts/AuthContext';
 export const useClassChats = () => {
   const { profile } = useAuth();
   const [classChats, setClassChats] = useState([]);
+  const [archivedClassChats, setArchivedClassChats] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const loadClassChats = useCallback(async () => {
     if (!profile?.id) return;
 
-    // Get existing class chats where user is a member
+    // Query class chats directly — RLS (chats_select) handles access
+    // via chat_members, teacher_classes, or users.class_id
     const { data, error } = await supabase
-      .from('chat_members')
+      .from('chats')
       .select(`
-        chat:chats!inner(
-          id,
-          type,
-          name,
-          class_id,
-          class:classes(id, name)
-        )
+        id,
+        type,
+        name,
+        class_id,
+        school_year,
+        archived_at,
+        class:classes(id, name)
       `)
-      .eq('user_id', profile.id);
+      .eq('type', 'class');
 
-    if (!error && data) {
-      // Filter to class chats only
-      const classChatItems = data.filter(item => item.chat?.type === 'class');
-      
-      // Check which have messages
-      const chatsWithMessages = await Promise.all(
-        classChatItems.map(async (item) => {
-          const { count } = await supabase
-            .from('messages')
-            .select('id', { count: 'exact', head: true })
-            .eq('chat_id', item.chat.id);
-          
-          if (count && count > 0) {
-            return {
-              id: item.chat.id,
-              name: item.chat.name || `Classe ${item.chat.class?.name || ''}`,
-              type: 'class',
-              class_id: item.chat.class_id
-            };
-          }
-          return null;
-        })
-      );
-      
-      setClassChats(chatsWithMessages.filter(Boolean));
+    if (error || !data) {
+      setLoading(false);
+      return;
     }
-    
+
+    if (data.length === 0) {
+      setClassChats([]);
+      setArchivedClassChats([]);
+      setLoading(false);
+      return;
+    }
+
+    // Separate active and archived
+    const active = [];
+    const archived = [];
+
+    for (const chat of data) {
+      const chatData = {
+        id: chat.id,
+        name: chat.name || `Classe ${chat.class?.name || ''}`,
+        type: 'class',
+        class_id: chat.class_id,
+        school_year: chat.school_year,
+        archived_at: chat.archived_at,
+      };
+
+      if (chat.archived_at) {
+        archived.push(chatData);
+      } else {
+        active.push(chatData);
+      }
+    }
+
+    setClassChats(active);
+    setArchivedClassChats(archived);
     setLoading(false);
   }, [profile?.id]);
 
@@ -65,8 +75,9 @@ export const useClassChats = () => {
 
   return {
     classChats,
+    archivedClassChats,
     loading,
     refresh,
-    hasClassChats: classChats.length > 0
+    hasClassChats: classChats.length > 0,
   };
 };

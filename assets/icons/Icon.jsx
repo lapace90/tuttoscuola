@@ -31,6 +31,7 @@ const iconMap = {
   repeat: { lib: 'feather', name: 'repeat' },
   download: { lib: 'feather', name: 'download' },
   share: { lib: 'feather', name: 'share' },
+  moreVertical: { lib: 'feather', name: 'more-vertical' },
 
   // Status & Info
   info: { lib: 'feather', name: 'info' },
@@ -72,10 +73,12 @@ const iconMap = {
   refresh: { lib: 'feather', name: 'rotate-ccw' },
   award: { lib: 'feather', name: 'award' },
   tag: { lib: 'feather', name: 'tag' },
+  shoppingBag: { lib: 'feather', name: 'shopping-bag' },
 
   // Material Icons (per icone non disponibili in Feather)
   school: { lib: 'material', name: 'school' },
   class: { lib: 'material', name: 'class' },
+  checkAll: { lib: 'material', name: 'done-all' },
 };
 
 const Icon = ({ name, size = 24, color = '#000', style }) => {

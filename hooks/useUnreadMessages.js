@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -7,40 +7,52 @@ export const useUnreadMessages = () => {
   const [totalUnread, setTotalUnread] = useState(0);
   const [unreadByChat, setUnreadByChat] = useState({});
   const [loading, setLoading] = useState(true);
+  const chatIdsRef = useRef(new Set());
 
   const loadUnreadCounts = useCallback(async () => {
     if (!profile?.id) return;
 
     try {
-      // Récupérer tous les chats de l'utilisateur avec last_read_at
+      // 1. Get all memberships with last_read_at
       const { data: memberships } = await supabase
         .from('chat_members')
         .select('chat_id, last_read_at')
         .eq('user_id', profile.id);
 
-      if (!memberships) {
+      if (!memberships || memberships.length === 0) {
         setLoading(false);
         return;
       }
 
+      const chatIds = memberships.map(m => m.chat_id);
+      chatIdsRef.current = new Set(chatIds);
+
+      // 2. Single query: get all messages from others in all chats
+      const { data: messages } = await supabase
+        .from('messages')
+        .select('chat_id, created_at')
+        .in('chat_id', chatIds)
+        .neq('sender_id', profile.id)
+        .order('created_at', { ascending: false });
+
+      if (!messages) {
+        setLoading(false);
+        return;
+      }
+
+      // 3. Build last_read_at map
+      const lastReadMap = {};
+      for (const m of memberships) {
+        lastReadMap[m.chat_id] = m.last_read_at || '1970-01-01';
+      }
+
+      // 4. Count unread per chat client-side
       let total = 0;
       const byChat = {};
-
-      // Pour chaque chat, compter les messages non lus
-      for (const membership of memberships) {
-        const lastRead = membership.last_read_at || '1970-01-01';
-
-        const { count } = await supabase
-          .from('messages')
-          .select('*', { count: 'exact', head: true })
-          .eq('chat_id', membership.chat_id)
-          .neq('sender_id', profile.id)
-          .gt('created_at', lastRead);
-
-        const unreadCount = count || 0;
-        if (unreadCount > 0) {
-          byChat[membership.chat_id] = unreadCount;
-          total += unreadCount;
+      for (const msg of messages) {
+        if (msg.created_at > lastReadMap[msg.chat_id]) {
+          byChat[msg.chat_id] = (byChat[msg.chat_id] || 0) + 1;
+          total++;
         }
       }
 
@@ -53,7 +65,6 @@ export const useUnreadMessages = () => {
     }
   }, [profile?.id]);
 
-  // Marquer un chat comme lu
   const markChatAsRead = useCallback(async (chatId) => {
     if (!profile?.id) return;
 
@@ -64,7 +75,6 @@ export const useUnreadMessages = () => {
       .eq('user_id', profile.id);
 
     if (!error) {
-      // Mise à jour optimiste
       setUnreadByChat(prev => {
         const newByChat = { ...prev };
         const chatUnread = newByChat[chatId] || 0;
@@ -77,13 +87,11 @@ export const useUnreadMessages = () => {
     return { error };
   }, [profile?.id]);
 
-  // Écouter les nouveaux messages en temps réel
   useEffect(() => {
     if (!profile?.id) return;
 
     loadUnreadCounts();
 
-    // Subscribe aux nouveaux messages
     const channel = supabase
       .channel('unread-messages')
       .on(
@@ -95,9 +103,8 @@ export const useUnreadMessages = () => {
         },
         (payload) => {
           const newMessage = payload.new;
-          
-          // Si ce n'est pas mon message, incrémenter
-          if (newMessage.sender_id !== profile.id) {
+
+          if (newMessage.sender_id !== profile.id && chatIdsRef.current.has(newMessage.chat_id)) {
             setUnreadByChat(prev => ({
               ...prev,
               [newMessage.chat_id]: (prev[newMessage.chat_id] || 0) + 1,

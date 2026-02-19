@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, FlatList, Pressable, TextInput, Alert } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
-import { hp, wp } from '../../../helpers/common';
+import { hp, wp, getCurrentSchoolYear } from '../../../helpers/common';
 import { theme, roleColors } from '../../../constants/theme';
 import { useAuth } from '../../../contexts/AuthContext';
 import { getUsersByClass, getTeachers, getTeacherClasses } from '../../../services/userService';
@@ -37,11 +37,17 @@ const NewChat = () => {
 
   const loadUsers = async () => {
     setLoading(true);
-    
+
+    if (!profile?.id) {
+      setLoading(false);
+      return;
+    }
+
     let allUsers = [];
     let allClasses = [];
     const instituteId = profile?.institute_id || profile?.class?.institute_id || profile?.institute?.id;
-    
+
+    try {
     if (profile?.role === 'teacher') {
       const { data: teacherClasses } = await getTeacherClasses(profile.id);
       
@@ -99,6 +105,11 @@ const NewChat = () => {
     setClasses(allClasses);
     setUsers(allUsers);
     setFilteredUsers(allUsers);
+
+    } catch (e) {
+      console.error('loadUsers error:', e);
+    }
+
     setLoading(false);
   };
 
@@ -120,7 +131,7 @@ const NewChat = () => {
     if (creating) return;
     
     setCreating(true);
-    const { data, error } = await getOrCreateClassChat(classItem.id, classItem.name, profile.id);
+    const { data, error } = await getOrCreateClassChat(classItem.id, classItem.name, profile.id, getCurrentSchoolYear());
     setCreating(false);
     
     if (error) {

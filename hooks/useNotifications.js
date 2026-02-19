@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   getNotifications, 
@@ -96,8 +96,8 @@ export const useNotifications = () => {
     return NOTIFICATION_TYPES[type] || NOTIFICATION_TYPES.general;
   };
 
-  const unreadNotifications = notifications.filter(n => !n.read);
-  const readNotifications = notifications.filter(n => n.read);
+  const unreadNotifications = useMemo(() => notifications.filter(n => !n.read), [notifications]);
+  const readNotifications = useMemo(() => notifications.filter(n => n.read), [notifications]);
 
   return {
     notifications,

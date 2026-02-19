@@ -30,11 +30,10 @@ const Login = () => {
     const password = passwordRef.current.trim();
 
     setLoading(true);
-    const { data, error } = await signIn(email, password);
+    const { data, error, profile: userProfile } = await signIn(email, password);
     setLoading(false);
 
     if (error) {
-      // Messaggio più chiaro per email non confermata
       if (error.message.includes('Email not confirmed')) {
         Alert.alert(
           'Email non confermata',
@@ -44,9 +43,11 @@ const Login = () => {
         Alert.alert('Errore', error.message);
       }
     } else if (data?.session) {
-      // Login riuscito - il redirect viene gestito da AuthContext
-      // Ma aggiungiamo un fallback
-      router.replace('/(main)/calendar');
+      if (!userProfile?.onboarding_completed) {
+        router.replace('/onboarding');
+      } else {
+        router.replace('/(main)/(tabs)/calendar');
+      }
     } else {
       Alert.alert(
         'Email non confermata',
@@ -100,6 +101,7 @@ const Login = () => {
             icon={<Icon name="lock" size={22} color={theme.colors.textLight} />}
             placeholder="Password"
             secureTextEntry
+            textContentType="oneTimeCode"
             onChangeText={(value) => (passwordRef.current = value)}
           />
 

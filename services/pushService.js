@@ -8,23 +8,18 @@ const isExpoGo = Constants.appOwnership === 'expo';
 
 // Solo configura se NON siamo in Expo Go
 if (!isExpoGo) {
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowAlert: true,
-      shouldPlaySound: true,
-      shouldSetBadge: true,
-    }),
-  });
+  try {
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: true,
+      }),
+    });
+  } catch (e) {
+    console.log('Notifications handler setup skipped');
+  }
 }
-
-// Configuration des notifications
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
 
 /**
  * Enregistrer le device pour les push notifications
@@ -250,6 +245,7 @@ export const sendBulkPushNotifications = async (userIds, { title, body, data }) 
  * Configurer les listeners de notification
  */
 export const setupNotificationListeners = (onNotificationReceived, onNotificationResponse) => {
+  if (isExpoGo) return () => {};
   const receivedSubscription = Notifications.addNotificationReceivedListener(onNotificationReceived);
   const responseSubscription = Notifications.addNotificationResponseReceivedListener(onNotificationResponse);
 
@@ -263,6 +259,7 @@ export const setupNotificationListeners = (onNotificationReceived, onNotificatio
  * Obtenir le badge count
  */
 export const getBadgeCount = async () => {
+  if (isExpoGo) return 0;
   return await Notifications.getBadgeCountAsync();
 };
 
@@ -270,5 +267,6 @@ export const getBadgeCount = async () => {
  * Définir le badge count
  */
 export const setBadgeCount = async (count) => {
+  if (isExpoGo) return;
   await Notifications.setBadgeCountAsync(count);
 };

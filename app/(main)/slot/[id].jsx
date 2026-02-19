@@ -224,7 +224,7 @@ const SlotDetail = () => {
         )}
       </ScrollView>
 
-      {profile?.role === 'student' && (
+      {profile?.role === 'student' && !isVerifica && (
         <View style={styles.footer}>
           {isBooked ? (
             <Button

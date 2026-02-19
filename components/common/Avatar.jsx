@@ -48,7 +48,7 @@ const Avatar = ({
   );
 };
 
-export default Avatar;
+export default React.memo(Avatar);
 
 const styles = StyleSheet.create({
   placeholder: {

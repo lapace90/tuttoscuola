@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, ScrollView, Pressable, RefreshControl, FlatList } from 'react-native';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'expo-router';
 import { hp, wp } from '../../../helpers/common';
 import { theme, slotTypeColors } from '../../../constants/theme';
@@ -130,22 +130,33 @@ const Calendar = () => {
     return formatDateKey(date) === formatDateKey(selectedDate);
   };
 
-  const getDayName = (date) => {
-    return date.toLocaleDateString('it-IT', { weekday: 'short' }).slice(0, 3);
-  };
+  const dayNameCache = useMemo(() => {
+    const cache = {};
+    for (let d = 0; d < 7; d++) {
+      const date = new Date(2024, 0, d + 1); // Mon-Sun
+      cache[date.getDay()] = date.toLocaleDateString('it-IT', { weekday: 'short' }).slice(0, 3);
+    }
+    return cache;
+  }, []);
+
+  const getDayName = (date) => dayNameCache[date.getDay()];
 
   const getMonthYear = () => {
     return selectedDate.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
   };
 
-  const getSlotsForDate = (date) => {
-    const dateKey = formatDateKey(date);
-    return slots.filter(slot => slot.date === dateKey);
-  };
+  const slotsByDate = useMemo(() => {
+    const map = {};
+    for (const slot of slots) {
+      if (!map[slot.date]) map[slot.date] = [];
+      map[slot.date].push(slot);
+    }
+    return map;
+  }, [slots]);
 
-  const hasSlots = (date) => {
-    return getSlotsForDate(date).length > 0;
-  };
+  const getSlotsForDate = (date) => slotsByDate[formatDateKey(date)] || [];
+
+  const hasSlots = (date) => !!slotsByDate[formatDateKey(date)];
 
   const selectedSlots = getSlotsForDate(selectedDate);
 

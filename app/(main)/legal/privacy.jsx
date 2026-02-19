@@ -22,7 +22,7 @@ const Privacy = () => {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.lastUpdate}>Ultimo aggiornamento: Gennaio 2026</Text>
+        <Text style={styles.lastUpdate}>Ultimo aggiornamento: Febbraio 2026</Text>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>1. Introduzione</Text>
@@ -65,6 +65,12 @@ const Privacy = () => {
             <Text style={styles.bulletItem}>• File e immagini condivisi</Text>
             <Text style={styles.bulletItem}>• Token per notifiche push (se autorizzate)</Text>
           </View>
+          <Text style={styles.subTitle}>Dati del Mercatino scolastico:</Text>
+          <View style={styles.bulletList}>
+            <Text style={styles.bulletItem}>• Annunci pubblicati (titolo, descrizione, prezzo, categoria, condizione)</Text>
+            <Text style={styles.bulletItem}>• Immagini degli articoli in vendita</Text>
+            <Text style={styles.bulletItem}>• Nome del venditore (visibile agli altri utenti)</Text>
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -92,6 +98,7 @@ const Privacy = () => {
             <Text style={styles.bulletItem}>• Gestione delle prenotazioni per interrogazioni</Text>
             <Text style={styles.bulletItem}>• Invio di comunicazioni scolastiche</Text>
             <Text style={styles.bulletItem}>• Gestione dei compiti e delle scadenze</Text>
+            <Text style={styles.bulletItem}>• Mercatino scolastico: messa in relazione tra venditori e acquirenti di materiale scolastico</Text>
             <Text style={styles.bulletItem}>• Sicurezza e prevenzione di abusi</Text>
           </View>
           <Text style={styles.paragraph}>
@@ -108,6 +115,7 @@ const Privacy = () => {
             <Text style={styles.bulletItem}>• Dati account: fino alla disattivazione o termine del rapporto con l'istituto</Text>
             <Text style={styles.bulletItem}>• Dati scolastici (voti, presenze): secondo obblighi di legge (minimo 10 anni)</Text>
             <Text style={styles.bulletItem}>• Messaggi nelle chat: 2 anni dalla creazione</Text>
+            <Text style={styles.bulletItem}>• Annunci del Mercatino: fino alla rimozione o 1 anno dalla pubblicazione</Text>
             <Text style={styles.bulletItem}>• Segnalazioni: 5 anni dalla risoluzione</Text>
           </View>
         </View>

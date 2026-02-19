@@ -18,20 +18,20 @@ import Icon from '../../../assets/icons/Icon';
 const EditProfile = () => {
   const router = useRouter();
   const { profile, refreshProfile } = useAuth();
-  
+
   const [firstName, setFirstName] = useState(profile?.first_name || '');
   const [lastName, setLastName] = useState(profile?.last_name || '');
   const [avatar, setAvatar] = useState(profile?.avatar_url || null);
   const [newAvatarUri, setNewAvatarUri] = useState(null);
   const [saving, setSaving] = useState(false);
-  
+
   // Cropper state
   const [showCropper, setShowCropper] = useState(false);
   const [tempImageUri, setTempImageUri] = useState(null);
 
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
+
     if (status !== 'granted') {
       Alert.alert('Permesso negato', 'Serve il permesso per accedere alla galleria');
       return;

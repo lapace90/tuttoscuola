@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, FlatList, Pressable, RefreshControl, Alert } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { hp, wp } from '../../../helpers/common';
 import { theme } from '../../../constants/theme';
@@ -100,7 +100,7 @@ const Notifications = () => {
     );
   };
 
-  const renderNotification = ({ item }) => {
+  const renderNotification = useCallback(({ item }) => {
     const typeConfig = NOTIFICATION_TYPES[item.type] || NOTIFICATION_TYPES.announcement;
 
     return (
@@ -129,7 +129,7 @@ const Notifications = () => {
         {!item.read && <View style={styles.unreadDot} />}
       </Pressable>
     );
-  };
+  }, []);
 
   const renderHeader = () => {
     if (notifications.length === 0) return null;

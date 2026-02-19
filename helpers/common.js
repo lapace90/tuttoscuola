@@ -119,3 +119,17 @@ export const getRelativeTime = (date) => {
 
   return formatDate(date, { day: 'numeric', month: 'short' });
 };
+
+/**
+ * Get current school year (e.g., "2025-2026")
+ * September-December = year/year+1, January-August = (year-1)/year
+ */
+export const getCurrentSchoolYear = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth(); // 0-indexed
+  if (month >= 8) { // Settembre in poi
+    return `${year}-${year + 1}`;
+  }
+  return `${year - 1}-${year}`;
+};

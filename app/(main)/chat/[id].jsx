@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, FlatList, TextInput, Pressable, KeyboardAvoidingView, Platform, Image, Linking, ActivityIndicator, Modal, Share } from 'react-native';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUnreadMessagesContext } from '../../../contexts/UnreadMessagesContext';
@@ -33,7 +33,7 @@ const ChatDetail = () => {
   const [showImageViewer, setShowImageViewer] = useState(false);
   const [savingImage, setSavingImage] = useState(false);
 
-  const { chatInfo, otherMember, loading: chatLoading, isGroupChat, getChatTitle } = useChatInfo(id, profile?.id);
+  const { chatInfo, otherMember, loading: chatLoading, isGroupChat, isArchived, getChatTitle, isReadByAll } = useChatInfo(id, profile?.id);
   const { messages, loading, sending, sendText, sendImage, sendDocument, pickImage, pickDocument } = useMessages(id, profile?.id);
 
   const { markChatAsRead } = useUnreadMessagesContext();
@@ -154,10 +154,18 @@ const ChatDetail = () => {
     }
   };
 
-  const renderMessage = ({ item, index }) => {
+  const parseListingMessage = (content) => {
+    if (!content) return null;
+    const match = content.match(/^\[listing:([a-f0-9-]+)\](.+)$/);
+    if (!match) return null;
+    return { listingId: match[1], text: match[2] };
+  };
+
+  const renderMessage = useCallback(({ item, index }) => {
     const isOwn = item.sender_id === profile?.id;
     const showDate = index === 0 ||
       new Date(item.created_at).toDateString() !== new Date(messages[index - 1]?.created_at).toDateString();
+    const listingData = parseListingMessage(item.content);
 
     return (
       <View>
@@ -171,46 +179,86 @@ const ChatDetail = () => {
           </Text>
         )}
         <View style={[styles.messageRow, isOwn && styles.messageRowOwn]}>
-          <View style={[styles.messageBubble, isOwn ? styles.bubbleOwn : styles.bubbleOther]}>
-            {!isOwn && isGroupChat && item.sender && (
-              <Text style={styles.senderName}>
-                {item.sender.first_name}
+          {listingData ? (
+            <Pressable
+              style={styles.listingCardContainer}
+              onPress={() => router.push(`/(main)/marketplace/${listingData.listingId}`)}
+            >
+              {!isOwn && isGroupChat && item.sender && (
+                <Text style={styles.listingCardSender}>{item.sender.first_name}</Text>
+              )}
+              <View style={styles.listingCardIcon}>
+                <Icon name="shoppingBag" size={28} color={theme.colors.primary} />
+              </View>
+              <Text style={styles.listingCardTitle} numberOfLines={2}>
+                {listingData.text.replace(/^📦\s*/, '')}
               </Text>
-            )}
-
-            {/* Contenuto in base al tipo */}
-            {item.type === 'image' && item.file_url ? (
-              <Pressable onPress={() => openImageViewer(item.file_url)}>
-                <Image
-                  source={{ uri: item.file_url }}
-                  style={styles.messageImage}
-                  resizeMode="cover"
-                />
-              </Pressable>
-            ) : item.type === 'document' && item.file_url ? (
-              <Pressable style={styles.documentContainer} onPress={() => openDocument(item.file_url)}>
-                <Icon name="file" size={24} color={isOwn ? 'white' : theme.colors.secondary} />
-                <Text style={[styles.documentName, isOwn && styles.documentNameOwn]} numberOfLines={2}>
-                  {item.file_name || 'Documento'}
+              <View style={styles.listingCardFooter}>
+                <Text style={styles.listingCardLink}>Vedi annuncio</Text>
+                <Icon name="chevronRight" size={16} color={theme.colors.primary} />
+              </View>
+              <View style={styles.listingCardTimeRow}>
+                <Text style={styles.listingCardTime}>{formatTime(item.created_at)}</Text>
+                {isOwn && (
+                  <Icon
+                    name={isReadByAll(item.created_at) ? 'checkAll' : 'check'}
+                    size={14}
+                    color={isReadByAll(item.created_at) ? theme.colors.primary : theme.colors.textLight}
+                  />
+                )}
+              </View>
+            </Pressable>
+          ) : (
+            <View style={[styles.messageBubble, isOwn ? styles.bubbleOwn : styles.bubbleOther]}>
+              {!isOwn && isGroupChat && item.sender && (
+                <Text style={styles.senderName}>
+                  {item.sender.first_name}
                 </Text>
-              </Pressable>
-            ) : (
-              <Text style={[styles.messageText, isOwn && styles.messageTextOwn]}>
-                {item.content}
-              </Text>
-            )}
+              )}
 
-            <Text style={[styles.messageTime, isOwn && styles.messageTimeOwn]}>
-              {formatTime(item.created_at)}
-            </Text>
-          </View>
+              {/* Contenuto in base al tipo */}
+              {item.type === 'image' && item.file_url ? (
+                <Pressable onPress={() => openImageViewer(item.file_url)}>
+                  <Image
+                    source={{ uri: item.file_url }}
+                    style={styles.messageImage}
+                    resizeMode="cover"
+                  />
+                </Pressable>
+              ) : item.type === 'document' && item.file_url ? (
+                <Pressable style={styles.documentContainer} onPress={() => openDocument(item.file_url)}>
+                  <Icon name="file" size={24} color={isOwn ? 'white' : theme.colors.secondary} />
+                  <Text style={[styles.documentName, isOwn && styles.documentNameOwn]} numberOfLines={2}>
+                    {item.file_name || 'Documento'}
+                  </Text>
+                </Pressable>
+              ) : (
+                <Text style={[styles.messageText, isOwn && styles.messageTextOwn]}>
+                  {item.content}
+                </Text>
+              )}
+
+              <View style={styles.messageTimeRow}>
+                <Text style={[styles.messageTime, isOwn && styles.messageTimeOwn]}>
+                  {formatTime(item.created_at)}
+                </Text>
+                {isOwn && (
+                  <Icon
+                    name={isReadByAll(item.created_at) ? 'checkAll' : 'check'}
+                    size={14}
+                    color={isReadByAll(item.created_at) ? theme.colors.secondaryLight : 'rgba(255,255,255,0.7)'}
+                  />
+                )}
+              </View>
+            </View>
+          )}
         </View>
       </View>
     );
-  };
+  }, [messages, profile?.id, isGroupChat, isReadByAll]);
 
   return (
-    <ScreenWrapper bg={theme.colors.background} edges={['top']}>
+    <ScreenWrapper bg={theme.colors.background} edges={['top', 'bottom']}>
       {/* Header */}
       <View style={styles.header}>
         <BackButton router={router} />
@@ -237,7 +285,7 @@ const ChatDetail = () => {
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 0}
       >
         <FlatList
           ref={flatListRef}
@@ -256,57 +304,66 @@ const ChatDetail = () => {
           }
         />
 
-        {/* Menu allegati */}
-        {showAttachMenu && (
-          <View style={styles.attachMenu}>
-            <Pressable style={styles.attachOption} onPress={handlePickImage}>
-              <View style={[styles.attachIcon, { backgroundColor: theme.colors.primary + '20' }]}>
-                <Icon name="image" size={22} color={theme.colors.primary} />
-              </View>
-              <Text style={styles.attachText}>Immagine</Text>
-            </Pressable>
-            <Pressable style={styles.attachOption} onPress={handlePickDocument}>
-              <View style={[styles.attachIcon, { backgroundColor: theme.colors.secondary + '20' }]}>
-                <Icon name="file" size={22} color={theme.colors.secondary} />
-              </View>
-              <Text style={styles.attachText}>Documento</Text>
-            </Pressable>
+        {isArchived ? (
+          <View style={styles.archivedBanner}>
+            <Icon name="clock" size={16} color={theme.colors.textLight} />
+            <Text style={styles.archivedText}>Chat archiviata ({chatInfo?.school_year})</Text>
           </View>
-        )}
+        ) : (
+          <>
+            {/* Menu allegati */}
+            {showAttachMenu && (
+              <View style={styles.attachMenu}>
+                <Pressable style={styles.attachOption} onPress={handlePickImage}>
+                  <View style={[styles.attachIcon, { backgroundColor: theme.colors.primary + '20' }]}>
+                    <Icon name="image" size={22} color={theme.colors.primary} />
+                  </View>
+                  <Text style={styles.attachText}>Immagine</Text>
+                </Pressable>
+                <Pressable style={styles.attachOption} onPress={handlePickDocument}>
+                  <View style={[styles.attachIcon, { backgroundColor: theme.colors.secondary + '20' }]}>
+                    <Icon name="file" size={22} color={theme.colors.secondary} />
+                  </View>
+                  <Text style={styles.attachText}>Documento</Text>
+                </Pressable>
+              </View>
+            )}
 
-        <View style={[styles.inputContainer, { paddingBottom: bottom + hp(1) }]}>
-          <Pressable
-            style={styles.attachButton}
-            onPress={() => setShowAttachMenu(!showAttachMenu)}
-          >
-            <Icon name={showAttachMenu ? "x" : "plus"} size={24} color={theme.colors.secondary} />
-          </Pressable>
+            <View style={[styles.inputContainer, { paddingBottom: hp(1) }]}>
+              <Pressable
+                style={styles.attachButton}
+                onPress={() => setShowAttachMenu(!showAttachMenu)}
+              >
+                <Icon name={showAttachMenu ? "x" : "plus"} size={24} color={theme.colors.secondary} />
+              </Pressable>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Scrivi un messaggio..."
-            placeholderTextColor={theme.colors.placeholder}
-            value={newMessage}
-            onChangeText={setNewMessage}
-            multiline
-            maxLength={1000}
-            onFocus={() => setShowAttachMenu(false)}
-          />
+              <TextInput
+                style={styles.input}
+                placeholder="Scrivi un messaggio..."
+                placeholderTextColor={theme.colors.placeholder}
+                value={newMessage}
+                onChangeText={setNewMessage}
+                multiline
+                maxLength={1000}
+                onFocus={() => setShowAttachMenu(false)}
+              />
 
-          {sending ? (
-            <View style={styles.sendButton}>
-              <ActivityIndicator color="white" size="small" />
+              {sending ? (
+                <View style={styles.sendButton}>
+                  <ActivityIndicator color="white" size="small" />
+                </View>
+              ) : (
+                <Pressable
+                  style={[styles.sendButton, !newMessage.trim() && styles.sendButtonDisabled]}
+                  onPress={handleSend}
+                  disabled={!newMessage.trim() || sending}
+                >
+                  <Icon name="send" size={22} color="white" />
+                </Pressable>
+              )}
             </View>
-          ) : (
-            <Pressable
-              style={[styles.sendButton, !newMessage.trim() && styles.sendButtonDisabled]}
-              onPress={handleSend}
-              disabled={!newMessage.trim() || sending}
-            >
-              <Icon name="send" size={22} color="white" />
-            </Pressable>
-          )}
-        </View>
+          </>
+        )}
       </KeyboardAvoidingView>
 
       {/* Image Cropper */}
@@ -467,11 +524,70 @@ const styles = StyleSheet.create({
   documentNameOwn: {
     color: 'white',
   },
+  listingCardContainer: {
+    maxWidth: '80%',
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.lg,
+    borderWidth: 1,
+    borderColor: theme.colors.primary + '30',
+    padding: hp(1.5),
+    alignItems: 'center',
+    ...theme.shadows.sm,
+  },
+  listingCardSender: {
+    fontSize: hp(1.4),
+    fontWeight: theme.fonts.semiBold,
+    color: theme.colors.secondary,
+    alignSelf: 'flex-start',
+    marginBottom: hp(0.5),
+  },
+  listingCardIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: theme.colors.primary + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: hp(1),
+  },
+  listingCardTitle: {
+    fontSize: hp(1.7),
+    fontWeight: theme.fonts.semiBold,
+    color: theme.colors.text,
+    textAlign: 'center',
+    marginBottom: hp(1),
+  },
+  listingCardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  listingCardLink: {
+    fontSize: hp(1.5),
+    fontWeight: theme.fonts.semiBold,
+    color: theme.colors.primary,
+  },
+  listingCardTimeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: hp(0.8),
+    alignSelf: 'flex-end',
+  },
+  listingCardTime: {
+    fontSize: hp(1.2),
+    color: theme.colors.textLight,
+  },
+  messageTimeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    alignSelf: 'flex-end',
+    marginTop: hp(0.5),
+  },
   messageTime: {
     fontSize: hp(1.2),
     color: theme.colors.textLight,
-    alignSelf: 'flex-end',
-    marginTop: hp(0.5),
   },
   messageTimeOwn: {
     color: 'rgba(255,255,255,0.7)',
@@ -538,6 +654,20 @@ const styles = StyleSheet.create({
   },
   sendButtonDisabled: {
     backgroundColor: theme.colors.disabled,
+  },
+  archivedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: wp(2),
+    paddingVertical: hp(1.5),
+    backgroundColor: theme.colors.card,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.accentLight,
+  },
+  archivedText: {
+    fontSize: hp(1.4),
+    color: theme.colors.textLight,
   },
   emptyContainer: {
     flex: 1,

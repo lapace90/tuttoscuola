@@ -8,6 +8,7 @@ import {
   Dimensions,
   PanResponder,
   Animated,
+  ActivityIndicator,
 } from 'react-native';
 import { Image } from 'expo-image';
 import * as ImageManipulator from 'expo-image-manipulator';
@@ -15,179 +16,143 @@ import { theme } from '../../constants/theme';
 import { hp, wp } from '../../helpers/common';
 import Icon from '../../assets/icons/Icon';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CROP_SIZE = SCREEN_WIDTH * 0.75;
 
-const ImageCropper = ({ 
-  visible, 
-  imageUri, 
-  onCrop, 
+const ImageCropper = ({
+  visible,
+  imageUri,
+  onCrop,
   onCancel,
   cropShape = 'circle',
 }) => {
-  const [imageLayout, setImageLayout] = useState({ width: 0, height: 0, x: 0, y: 0 });
-  const [originalSize, setOriginalSize] = useState({ width: 0, height: 0 });
+  const [normalizedUri, setNormalizedUri] = useState(null);
+  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+  const [displaySize, setDisplaySize] = useState({ width: 0, height: 0 });
   const [loading, setLoading] = useState(false);
-  
-  const scale = useRef(new Animated.Value(1)).current;
+  const [preparing, setPreparing] = useState(false);
+
   const translateX = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
-  
-  const lastScale = useRef(1);
+
   const lastTranslateX = useRef(0);
   const lastTranslateY = useRef(0);
-  const initialPinchDistance = useRef(0);
-  const initialPinchScale = useRef(1);
 
   useEffect(() => {
     if (visible && imageUri) {
-      // Reset on open
-      scale.setValue(1);
       translateX.setValue(0);
       translateY.setValue(0);
-      lastScale.current = 1;
       lastTranslateX.current = 0;
       lastTranslateY.current = 0;
+      prepareImage(imageUri);
+    } else {
+      setNormalizedUri(null);
     }
   }, [visible, imageUri]);
 
-  const getDistance = (touches) => {
-    const [t1, t2] = touches;
-    return Math.sqrt(
-      Math.pow(t2.pageX - t1.pageX, 2) + Math.pow(t2.pageY - t1.pageY, 2)
-    );
+  const prepareImage = async (uri) => {
+    setPreparing(true);
+    try {
+      const result = await ImageManipulator.manipulateAsync(
+        uri,
+        [],
+        { format: ImageManipulator.SaveFormat.JPEG }
+      );
+
+      const w = result.width;
+      const h = result.height;
+      setImageSize({ width: w, height: h });
+      setNormalizedUri(result.uri);
+
+      const aspect = w / h;
+      if (aspect > 1) {
+        setDisplaySize({ width: CROP_SIZE * aspect, height: CROP_SIZE });
+      } else {
+        setDisplaySize({ width: CROP_SIZE, height: CROP_SIZE / aspect });
+      }
+    } catch (e) {
+      setNormalizedUri(uri);
+    } finally {
+      setPreparing(false);
+    }
   };
 
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
-      
-      onPanResponderGrant: (evt) => {
+
+      onPanResponderGrant: () => {
         lastTranslateX.current = translateX._value;
         lastTranslateY.current = translateY._value;
-        
-        if (evt.nativeEvent.touches.length === 2) {
-          initialPinchDistance.current = getDistance(evt.nativeEvent.touches);
-          initialPinchScale.current = scale._value;
-        }
       },
-      
+
       onPanResponderMove: (evt, gestureState) => {
-        if (evt.nativeEvent.touches.length === 2) {
-          const currentDistance = getDistance(evt.nativeEvent.touches);
-          if (initialPinchDistance.current > 0) {
-            const newScale = initialPinchScale.current * (currentDistance / initialPinchDistance.current);
-            scale.setValue(Math.min(Math.max(newScale, 1), 5));
-          }
-        } else if (evt.nativeEvent.touches.length === 1) {
+        if (evt.nativeEvent.touches.length === 1) {
           translateX.setValue(lastTranslateX.current + gestureState.dx);
           translateY.setValue(lastTranslateY.current + gestureState.dy);
         }
       },
-      
+
       onPanResponderRelease: () => {
-        lastScale.current = scale._value;
         lastTranslateX.current = translateX._value;
         lastTranslateY.current = translateY._value;
-        
-        // Constrain position
         constrainPosition();
       },
     })
   ).current;
 
   const constrainPosition = () => {
-    const currentScale = scale._value;
-    const maxOffsetX = Math.max(0, (imageLayout.width * currentScale - CROP_SIZE) / 2);
-    const maxOffsetY = Math.max(0, (imageLayout.height * currentScale - CROP_SIZE) / 2);
-    
-    let newX = translateX._value;
-    let newY = translateY._value;
-    
-    newX = Math.min(maxOffsetX, Math.max(-maxOffsetX, newX));
-    newY = Math.min(maxOffsetY, Math.max(-maxOffsetY, newY));
-    
+    const maxOffsetX = Math.max(0, (displaySize.width - CROP_SIZE) / 2);
+    const maxOffsetY = Math.max(0, (displaySize.height - CROP_SIZE) / 2);
+
+    let newX = Math.min(maxOffsetX, Math.max(-maxOffsetX, translateX._value));
+    let newY = Math.min(maxOffsetY, Math.max(-maxOffsetY, translateY._value));
+
     Animated.parallel([
       Animated.spring(translateX, { toValue: newX, useNativeDriver: true, friction: 8 }),
       Animated.spring(translateY, { toValue: newY, useNativeDriver: true, friction: 8 }),
     ]).start();
-    
+
     lastTranslateX.current = newX;
     lastTranslateY.current = newY;
   };
 
-  const handleImageLoad = (event) => {
-    const { width, height } = event.source;
-    setOriginalSize({ width, height });
-    
-    // Calculate displayed size (image fills the crop area, covering it)
-    const imageAspect = width / height;
-    let displayWidth, displayHeight;
-    
-    if (imageAspect > 1) {
-      // Landscape: height fits crop, width overflows
-      displayHeight = CROP_SIZE;
-      displayWidth = CROP_SIZE * imageAspect;
-    } else {
-      // Portrait: width fits crop, height overflows
-      displayWidth = CROP_SIZE;
-      displayHeight = CROP_SIZE / imageAspect;
-    }
-    
-    setImageLayout({ width: displayWidth, height: displayHeight, x: 0, y: 0 });
-  };
-
   const handleCrop = async () => {
-    if (!imageUri || !originalSize.width) return;
-    
+    if (!normalizedUri || !imageSize.width) return;
+
     setLoading(true);
-    
+
     try {
-      const currentScale = scale._value;
-      const currentTranslateX = translateX._value;
-      const currentTranslateY = translateY._value;
-      
-      // Scale from displayed size to original
-      const scaleToOriginal = originalSize.width / imageLayout.width;
-      
-      // Visible crop area center offset
-      const cropCenterX = (imageLayout.width * currentScale) / 2 - currentTranslateX;
-      const cropCenterY = (imageLayout.height * currentScale) / 2 - currentTranslateY;
-      
-      // Crop origin (top-left) in displayed coordinates
-      const displayCropSize = CROP_SIZE / currentScale;
-      const displayOriginX = (cropCenterX / currentScale) - (displayCropSize / 2);
-      const displayOriginY = (cropCenterY / currentScale) - (displayCropSize / 2);
-      
-      // Convert to original image coordinates
-      const originX = Math.max(0, Math.round(displayOriginX * scaleToOriginal));
-      const originY = Math.max(0, Math.round(displayOriginY * scaleToOriginal));
-      const cropSize = Math.round(displayCropSize * scaleToOriginal);
-      
+      const tx = translateX._value;
+      const ty = translateY._value;
+
+      const ratioX = imageSize.width / displaySize.width;
+      const ratioY = imageSize.height / displaySize.height;
+
+      const cropOriginX = (displaySize.width - CROP_SIZE) / 2 - tx;
+      const cropOriginY = (displaySize.height - CROP_SIZE) / 2 - ty;
+
+      const originX = Math.max(0, Math.round(cropOriginX * ratioX));
+      const originY = Math.max(0, Math.round(cropOriginY * ratioY));
+      const cropW = Math.min(Math.round(CROP_SIZE * ratioX), imageSize.width - originX);
+      const cropH = Math.min(Math.round(CROP_SIZE * ratioY), imageSize.height - originY);
+
       const result = await ImageManipulator.manipulateAsync(
-        imageUri,
+        normalizedUri,
         [
-          {
-            crop: {
-              originX,
-              originY,
-              width: Math.min(cropSize, originalSize.width - originX),
-              height: Math.min(cropSize, originalSize.height - originY),
-            },
-          },
+          { crop: { originX, originY, width: cropW, height: cropH } },
           { resize: { width: 400, height: 400 } },
         ],
         { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
       );
-      
+
       onCrop(result.uri);
     } catch (error) {
       console.error('Crop error:', error);
-      // Fallback
       try {
         const result = await ImageManipulator.manipulateAsync(
-          imageUri,
+          normalizedUri || imageUri,
           [{ resize: { width: 400, height: 400 } }],
           { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
         );
@@ -200,17 +165,6 @@ const ImageCropper = ({
     }
   };
 
-  const resetPosition = () => {
-    Animated.parallel([
-      Animated.spring(scale, { toValue: 1, useNativeDriver: true }),
-      Animated.spring(translateX, { toValue: 0, useNativeDriver: true }),
-      Animated.spring(translateY, { toValue: 0, useNativeDriver: true }),
-    ]).start();
-    lastScale.current = 1;
-    lastTranslateX.current = 0;
-    lastTranslateY.current = 0;
-  };
-
   return (
     <Modal visible={visible} animationType="fade" statusBarTranslucent>
       <View style={styles.container}>
@@ -219,35 +173,35 @@ const ImageCropper = ({
             <Icon name="x" size={24} color="white" />
           </Pressable>
           <Text style={styles.headerTitle}>Ritaglia foto</Text>
-          <Pressable onPress={resetPosition} style={styles.headerButton}>
-            <Icon name="refresh" size={20} color="white" />
-          </Pressable>
+          <View style={{ width: 44 }} />
         </View>
 
         <View style={styles.cropArea}>
-          <View style={styles.imageWrapper} {...panResponder.panHandlers}>
-            <Animated.View
-              style={{
-                width: imageLayout.width || CROP_SIZE,
-                height: imageLayout.height || CROP_SIZE,
-                transform: [
-                  { scale },
-                  { translateX },
-                  { translateY },
-                ],
-              }}
-            >
-              {imageUri && (
-                <Image
-                  source={{ uri: imageUri }}
-                  style={{ width: '100%', height: '100%' }}
-                  contentFit="contain"
-                  onLoad={handleImageLoad}
-                />
-              )}
-            </Animated.View>
-          </View>
-          
+          {preparing ? (
+            <ActivityIndicator size="large" color="white" />
+          ) : (
+            <View style={styles.imageWrapper} {...panResponder.panHandlers}>
+              <Animated.View
+                style={{
+                  width: displaySize.width || CROP_SIZE,
+                  height: displaySize.height || CROP_SIZE,
+                  transform: [
+                    { translateX },
+                    { translateY },
+                  ],
+                }}
+              >
+                {normalizedUri && (
+                  <Image
+                    source={{ uri: normalizedUri }}
+                    style={{ width: '100%', height: '100%' }}
+                    contentFit="fill"
+                  />
+                )}
+              </Animated.View>
+            </View>
+          )}
+
           {/* Crop mask */}
           <View style={styles.maskOverlay} pointerEvents="none">
             <View style={[
@@ -257,16 +211,16 @@ const ImageCropper = ({
           </View>
         </View>
 
-        <Text style={styles.hint}>Trascina e pizzica per regolare</Text>
+        <Text style={styles.hint}>Trascina per regolare</Text>
 
         <View style={styles.actions}>
           <Pressable style={styles.cancelBtn} onPress={onCancel}>
             <Text style={styles.cancelText}>Annulla</Text>
           </Pressable>
-          <Pressable 
-            style={[styles.confirmBtn, loading && styles.btnDisabled]} 
+          <Pressable
+            style={[styles.confirmBtn, (loading || preparing) && styles.btnDisabled]}
             onPress={handleCrop}
-            disabled={loading}
+            disabled={loading || preparing}
           >
             <Icon name="check" size={20} color="white" />
             <Text style={styles.confirmText}>

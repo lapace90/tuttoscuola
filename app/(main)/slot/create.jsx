@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform, Modal, KeyboardAvoidingView } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -214,10 +214,15 @@ const CreateSlot = () => {
         <View style={{ width: 36 }} />
       </View>
 
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         {/* Materia */}
         <View style={styles.section}>
@@ -420,6 +425,7 @@ const CreateSlot = () => {
           />
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Footer fisso */}
       <View style={[styles.footer, { paddingBottom: hp(2) + bottom }]}>

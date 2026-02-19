@@ -56,7 +56,7 @@ const Button = ({
   );
 };
 
-export default Button;
+export default React.memo(Button);
 
 const styles = StyleSheet.create({
   button: {

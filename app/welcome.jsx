@@ -47,7 +47,7 @@ const Welcome = () => {
         <View style={styles.footer}>
           <Button
             title="Inizia"
-            onPress={() => router.push('/(auth)/signUp')}
+            onPress={() => router.push('/(auth)/signup')}
             buttonStyle={styles.startButton}
           />
           

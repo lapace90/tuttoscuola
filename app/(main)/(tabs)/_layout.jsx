@@ -76,6 +76,15 @@ const TabsLayout = () => {
         }}
       />
       <Tabs.Screen
+        name="marketplace"
+        options={{
+          title: 'Mercatino',
+          tabBarIcon: ({ color, size }) => (
+            <Icon name="shoppingBag" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           title: 'Profilo',

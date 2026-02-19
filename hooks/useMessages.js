@@ -68,8 +68,15 @@ export const useMessages = (chatId, userId) => {
     setSending(false);
 
     if (error) {
+      console.error('sendText error:', error);
       return { success: false, error: error.message };
     }
+
+    // Optimistic update: aggiungi subito allo state locale
+    setMessages(prev => {
+      if (prev.find(m => m.id === data.id)) return prev;
+      return [...prev, data];
+    });
 
     await supabase
       .from('chats')
@@ -184,6 +191,11 @@ export const useMessages = (chatId, userId) => {
       return { success: false, error: error.message };
     }
 
+    setMessages(prev => {
+      if (prev.find(m => m.id === data.id)) return prev;
+      return [...prev, data];
+    });
+
     await supabase
       .from('chats')
       .update({ updated_at: new Date().toISOString() })
@@ -232,6 +244,11 @@ export const useMessages = (chatId, userId) => {
     if (error) {
       return { success: false, error: error.message };
     }
+
+    setMessages(prev => {
+      if (prev.find(m => m.id === data.id)) return prev;
+      return [...prev, data];
+    });
 
     await supabase
       .from('chats')

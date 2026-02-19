@@ -132,7 +132,7 @@ const AdminPromotions = () => {
         style: 'destructive',
         onPress: async () => {
           setProcessing(true);
-          const { data: results, error: promoteError } = await promoteEntireClass(selectedClass.id, profile.institute_id);
+          const { data: results, error: promoteError } = await promoteEntireClass(selectedClass.id, profile.institute_id, profile.id);
           setProcessing(false);
           if (promoteError) Alert.alert('Errore', promoteError.message);
           else {

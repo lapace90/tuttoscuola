@@ -11,13 +11,11 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get initial session
-    checkSession();
-
-    // Listen to auth changes
+    // onAuthStateChange fires INITIAL_SESSION on registration,
+    // then SIGNED_IN/SIGNED_OUT on subsequent changes.
+    // No need for a separate checkSession — this handles everything.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-
         if (session?.user) {
           setUser(session.user);
           await fetchProfile(session.user.id);
@@ -31,20 +29,6 @@ export const AuthProvider = ({ children }) => {
 
     return () => subscription.unsubscribe();
   }, []);
-
-  const checkSession = async () => {
-    try {
-      const { session } = await authService.getSession();
-      if (session?.user) {
-        setUser(session.user);
-        await fetchProfile(session.user.id);
-      }
-    } catch (error) {
-      console.error('Session check error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const fetchProfile = async (userId) => {
     try {
@@ -64,10 +48,15 @@ export const AuthProvider = ({ children }) => {
 
   const signIn = async (email, password) => {
     const { data, error } = await authService.signIn(email, password);
+    let userProfile = null;
     if (!error && data.user) {
-      await fetchProfile(data.user.id);
+      const { data: profileData } = await userService.getUserById(data.user.id);
+      if (profileData) {
+        setProfile(profileData);
+        userProfile = profileData;
+      }
     }
-    return { data, error };
+    return { data, error, profile: userProfile };
   };
 
   const signOut = async () => {

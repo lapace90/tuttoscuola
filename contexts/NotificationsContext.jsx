@@ -18,7 +18,10 @@ export const NotificationsProvider = ({ children }) => {
 
   // Carica notifiche
   const loadNotifications = useCallback(async () => {
-    if (!profile?.id) return;
+    if (!profile?.id) {
+      setLoading(false);
+      return;
+    }
 
     const [notifResult, countResult] = await Promise.all([
       getNotifications(profile.id, 50),
@@ -44,6 +47,7 @@ export const NotificationsProvider = ({ children }) => {
     if (!profile?.id) return;
 
     const subscription = subscribeToNotifications(profile.id, (newNotification) => {
+      if (newNotification.type === 'message') return;
       setNotifications(prev => [newNotification, ...prev]);
       setUnreadCount(prev => prev + 1);
     });

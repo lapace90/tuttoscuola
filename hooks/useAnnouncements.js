@@ -13,7 +13,7 @@ export const useAnnouncements = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [readIds, setReadIds] = useState([]);
+  const [readIds, setReadIds] = useState(new Set());
 
   const instituteId = profile?.institute_id || profile?.class?.institute_id || profile?.institute?.id;
 
@@ -51,9 +51,9 @@ export const useAnnouncements = () => {
   };
 
   const markAsRead = async (announcementId) => {
-    if (!profile?.id || readIds.includes(announcementId)) return;
+    if (!profile?.id || readIds.has(announcementId)) return;
 
-    setReadIds(prev => [...prev, announcementId]);
+    setReadIds(prev => new Set([...prev, announcementId]));
     setUnreadCount(prev => Math.max(0, prev - 1));
     
     await markAnnouncementRead(announcementId, profile.id);
@@ -75,7 +75,7 @@ export const useAnnouncements = () => {
     return { data, error };
   };
 
-  const isRead = (announcementId) => readIds.includes(announcementId);
+  const isRead = (announcementId) => readIds.has(announcementId);
 
   return {
     announcements,

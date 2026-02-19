@@ -22,6 +22,7 @@ export const getNotifications = async (userId, limit = 50) => {
     .from('notifications')
     .select('*')
     .eq('user_id', userId)
+    .neq('type', 'message')
     .order('created_at', { ascending: false })
     .limit(limit);
 
@@ -50,7 +51,8 @@ export const getUnreadCount = async (userId) => {
     .from('notifications')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', userId)
-    .eq('read', false);
+    .eq('read', false)
+    .neq('type', 'message');
 
   return { count: count || 0, error };
 };

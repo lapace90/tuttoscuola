@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, FlatList, Pressable, RefreshControl } from 'react-native';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { hp, wp, getRelativeTime } from '../../../helpers/common';
 import { theme } from '../../../constants/theme';
@@ -10,14 +10,21 @@ import ScreenWrapper from '../../../components/common/ScreenWrapper';
 import Icon from '../../../assets/icons/Icon';
 import { useUnreadMessagesContext } from '../../../contexts/UnreadMessagesContext';
 
+const TABS = [
+  { key: 'direct', label: 'Singole' },
+  { key: 'group', label: 'Di gruppo' },
+];
+
 const Chats = () => {
   const router = useRouter();
   const { profile } = useAuth();
   const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [activeTab, setActiveTab] = useState('direct');
+  const [showArchived, setShowArchived] = useState(false);
 
-  const { classChats, refresh: refreshClassChats } = useClassChats();
+  const { classChats, archivedClassChats, refresh: refreshClassChats } = useClassChats();
   const { getUnreadCount } = useUnreadMessagesContext();
 
   useEffect(() => {
@@ -30,7 +37,6 @@ const Chats = () => {
     setLoading(true);
     const { data, error } = await getUserChats(profile.id);
     if (!error && data) {
-      // Filter out class chats from regular chats (they'll be shown separately)
       setChats(data.filter(c => c.type !== 'class'));
     }
     setLoading(false);
@@ -60,23 +66,18 @@ const Chats = () => {
     return 'Chat';
   };
 
-  const renderChatItem = ({ item }) => {
+  const renderDirectChatItem = useCallback(({ item }) => {
     const chatName = getChatName(item);
-    const isGroup = item.type === 'class' || item.type === 'group';
 
     return (
       <Pressable
         style={styles.chatItem}
         onPress={() => router.push(`/(main)/chat/${item.id}`)}
       >
-        <View style={[styles.avatar, isGroup && styles.avatarGroup]}>
-          {isGroup ? (
-            <Icon name="users" size={24} color={theme.colors.secondary} />
-          ) : (
-            <Text style={styles.avatarText}>
-              {getInitials(chatName)}
-            </Text>
-          )}
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>
+            {getInitials(chatName)}
+          </Text>
         </View>
 
         <View style={styles.chatInfo}>
@@ -105,7 +106,83 @@ const Chats = () => {
         )}
       </Pressable>
     );
-  };
+  }, [router, getUnreadCount]);
+
+  const renderGroupContent = () => (
+    <View style={styles.groupContent}>
+      {/* Active class chats */}
+      {classChats.length > 0 && (
+        <View style={styles.groupSection}>
+          <Text style={styles.sectionTitle}>Chat attive</Text>
+          {classChats.map((chat) => (
+            <Pressable
+              key={chat.id}
+              style={styles.classChatItem}
+              onPress={() => router.push(`/(main)/chat/${chat.id}`)}
+            >
+              <View style={styles.classChatAvatar}>
+                <Icon name="users" size={24} color={theme.colors.secondary} />
+              </View>
+              <View style={styles.classChatInfo}>
+                <Text style={styles.classChatName}>{chat.name}</Text>
+                <Text style={styles.classChatSubtitle}>Chat di classe</Text>
+              </View>
+              {getUnreadCount(chat.id) > 0 && (
+                <View style={styles.unreadBadge}>
+                  <Text style={styles.unreadText}>{getUnreadCount(chat.id)}</Text>
+                </View>
+              )}
+              <Icon name="chevronRight" size={20} color={theme.colors.textLight} />
+            </Pressable>
+          ))}
+        </View>
+      )}
+
+      {/* Archived class chats */}
+      {archivedClassChats.length > 0 && (
+        <View style={styles.groupSection}>
+          <Pressable
+            style={styles.archivedToggle}
+            onPress={() => setShowArchived(!showArchived)}
+          >
+            <Icon name="clock" size={18} color={theme.colors.textLight} />
+            <Text style={styles.archivedToggleText}>
+              Archiviate ({archivedClassChats.length})
+            </Text>
+            <Icon
+              name={showArchived ? 'chevronUp' : 'chevronDown'}
+              size={18}
+              color={theme.colors.textLight}
+            />
+          </Pressable>
+          {showArchived && archivedClassChats.map((chat) => (
+            <Pressable
+              key={chat.id}
+              style={styles.archivedChatItem}
+              onPress={() => router.push(`/(main)/chat/${chat.id}`)}
+            >
+              <View style={styles.archivedChatAvatar}>
+                <Icon name="users" size={20} color={theme.colors.textLight} />
+              </View>
+              <View style={styles.classChatInfo}>
+                <Text style={styles.archivedChatName}>{chat.name}</Text>
+                <Text style={styles.archivedChatYear}>{chat.school_year}</Text>
+              </View>
+              <Icon name="chevronRight" size={18} color={theme.colors.textLight} />
+            </Pressable>
+          ))}
+        </View>
+      )}
+
+      {/* Empty state */}
+      {classChats.length === 0 && archivedClassChats.length === 0 && !loading && (
+        <View style={styles.emptyContainer}>
+          <Icon name="users" size={48} color={theme.colors.textLight} />
+          <Text style={styles.emptyText}>Nessuna chat di gruppo</Text>
+        </View>
+      )}
+    </View>
+  );
 
   return (
     <ScreenWrapper bg={theme.colors.background} edges={['top', 'bottom']}>
@@ -119,61 +196,58 @@ const Chats = () => {
         </Pressable>
       </View>
 
-      {/* Class Chats Section */}
-      {classChats.length > 0 && (
-        <View style={styles.classChatSection}>
-          <Text style={styles.sectionTitle}>Chat di classe</Text>
-          {classChats.map((chat) => (
-            <Pressable
-              key={chat.id}
-              style={styles.classChatItem}
-              onPress={() => router.push(`/(main)/chat/${chat.id}`)}
-            >
-              <View style={styles.classChatAvatar}>
-                <Icon name="users" size={24} color={theme.colors.secondary} />
-              </View>
-              <View style={styles.classChatInfo}>
-                <Text style={styles.classChatName}>{chat.name}</Text>
-                <Text style={styles.classChatSubtitle}>Chat di gruppo</Text>
-              </View>
-              <Icon name="chevronRight" size={20} color={theme.colors.textLight} />
-            </Pressable>
-          ))}
-        </View>
-      )}
-
-      {/* Direct Chats */}
-      {(chats.length > 0 || classChats.length > 0) && (
-        <Text style={[styles.sectionTitle, { paddingHorizontal: wp(5) }]}>
-          Messaggi diretti
-        </Text>
-      )}
-
-      <FlatList
-        data={chats}
-        keyExtractor={(item) => item.id}
-        renderItem={renderChatItem}
-        contentContainerStyle={styles.listContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Icon name="messageCircle" size={48} color={theme.colors.textLight} />
-            <Text style={styles.emptyText}>
-              {loading ? 'Caricamento...' : 'Nessuna chat'}
+      {/* Tab selector */}
+      <View style={styles.tabBar}>
+        {TABS.map((tab) => (
+          <Pressable
+            key={tab.key}
+            style={[styles.tab, activeTab === tab.key && styles.tabActive]}
+            onPress={() => setActiveTab(tab.key)}
+          >
+            <Text style={[styles.tabText, activeTab === tab.key && styles.tabTextActive]}>
+              {tab.label}
             </Text>
-            {!loading && (
-              <Pressable
-                style={styles.startChatBtn}
-                onPress={() => router.push('/(main)/chat/new')}
-              >
-                <Text style={styles.startChatText}>Inizia una conversazione</Text>
-              </Pressable>
-            )}
-          </View>
-        }
-      />
+          </Pressable>
+        ))}
+      </View>
+
+      {activeTab === 'direct' ? (
+        <FlatList
+          data={chats}
+          keyExtractor={(item) => item.id}
+          renderItem={renderDirectChatItem}
+          contentContainerStyle={styles.listContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Icon name="messageCircle" size={48} color={theme.colors.textLight} />
+              <Text style={styles.emptyText}>
+                {loading ? 'Caricamento...' : 'Nessuna chat'}
+              </Text>
+              {!loading && (
+                <Pressable
+                  style={styles.startChatBtn}
+                  onPress={() => router.push('/(main)/chat/new')}
+                >
+                  <Text style={styles.startChatText}>Inizia una conversazione</Text>
+                </Pressable>
+              )}
+            </View>
+          }
+        />
+      ) : (
+        <FlatList
+          data={[]}
+          renderItem={null}
+          ListHeaderComponent={renderGroupContent}
+          contentContainerStyle={styles.listContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        />
+      )}
     </ScreenWrapper>
   );
 };
@@ -201,6 +275,33 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  tabBar: {
+    flexDirection: 'row',
+    marginHorizontal: wp(5),
+    marginBottom: hp(2),
+    backgroundColor: theme.colors.border + '40',
+    borderRadius: theme.radius.lg,
+    padding: 3,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: hp(1),
+    alignItems: 'center',
+    borderRadius: theme.radius.lg - 2,
+  },
+  tabActive: {
+    backgroundColor: theme.colors.card,
+    ...theme.shadows.sm,
+  },
+  tabText: {
+    fontSize: hp(1.6),
+    fontWeight: theme.fonts.medium,
+    color: theme.colors.textLight,
+  },
+  tabTextActive: {
+    color: theme.colors.text,
+    fontWeight: theme.fonts.semiBold,
+  },
   listContent: {
     paddingHorizontal: wp(5),
     paddingBottom: hp(4),
@@ -223,9 +324,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: wp(3),
-  },
-  avatarGroup: {
-    backgroundColor: theme.colors.secondaryLight + '30',
   },
   avatarText: {
     fontSize: hp(2),
@@ -286,17 +384,19 @@ const styles = StyleSheet.create({
     fontSize: hp(1.6),
     fontWeight: theme.fonts.semiBold,
   },
+  groupContent: {
+    gap: hp(2),
+  },
+  groupSection: {
+    gap: hp(0.5),
+  },
   sectionTitle: {
     fontSize: hp(1.4),
     fontWeight: theme.fonts.semiBold,
     color: theme.colors.textLight,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    marginBottom: hp(1),
-  },
-  classChatSection: {
-    paddingHorizontal: wp(5),
-    marginBottom: hp(2),
+    marginBottom: hp(0.5),
   },
   classChatItem: {
     flexDirection: 'row',
@@ -338,10 +438,53 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 6,
+    marginRight: wp(2),
   },
   unreadText: {
     color: 'white',
     fontSize: hp(1.3),
     fontWeight: 'bold',
+  },
+  archivedToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: hp(1),
+    gap: wp(2),
+  },
+  archivedToggleText: {
+    flex: 1,
+    fontSize: hp(1.5),
+    fontWeight: theme.fonts.semiBold,
+    color: theme.colors.textLight,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  archivedChatItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.colors.card,
+    borderRadius: theme.radius.lg,
+    padding: hp(1.2),
+    marginBottom: hp(0.8),
+    opacity: 0.7,
+  },
+  archivedChatAvatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: theme.colors.border + '50',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: wp(3),
+  },
+  archivedChatName: {
+    fontSize: hp(1.7),
+    fontWeight: theme.fonts.medium,
+    color: theme.colors.textLight,
+  },
+  archivedChatYear: {
+    fontSize: hp(1.3),
+    color: theme.colors.placeholder,
+    marginTop: 1,
   },
 });

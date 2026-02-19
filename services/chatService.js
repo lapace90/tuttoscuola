@@ -1,10 +1,11 @@
 import { supabase } from '../lib/supabase';
 
 /**
- * Get user's chats
+ * Get user's chats - optimized: 3 queries instead of 2N+1
  */
 export const getUserChats = async (userId) => {
-  const { data, error } = await supabase
+  // 1. Get all chat memberships
+  const { data: memberships, error } = await supabase
     .from('chat_members')
     .select(`
       chat:chats(
@@ -12,6 +13,8 @@ export const getUserChats = async (userId) => {
         type,
         name,
         updated_at,
+        school_year,
+        archived_at,
         class:classes(id, name)
       )
     `)
@@ -19,46 +22,63 @@ export const getUserChats = async (userId) => {
 
   if (error) return { data: null, error };
 
-  // Filtra null
-  const validData = data.filter(item => item.chat !== null);
+  const validChats = memberships
+    .filter(item => item.chat !== null)
+    .map(item => item.chat);
 
-  const chats = await Promise.all(
-    validData.map(async (item) => {
-      const chat = item.chat;
-      
-      // Get last message
-      const { data: lastMessage } = await supabase
-        .from('messages')
-        .select('content, created_at, sender:users!sender_id(first_name)')
-        .eq('chat_id', chat.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+  if (validChats.length === 0) return { data: [], error: null };
 
-      // Get other members for private chats
-      let otherMember = null;
-      if (chat.type === 'private') {
-        const { data: members } = await supabase
-          .from('chat_members')
-          .select('user:users(id, first_name, last_name, avatar_url)')
-          .eq('chat_id', chat.id)
-          .neq('user_id', userId)
-          .maybeSingle();
-        
-        otherMember = members?.user;
+  const chatIds = validChats.map(c => c.id);
+
+  // 2. Batch: get last message for all chats at once
+  // Use RPC or fetch recent messages per chat via a single query
+  const { data: recentMessages } = await supabase
+    .from('messages')
+    .select('chat_id, content, created_at, sender:users!sender_id(first_name)')
+    .in('chat_id', chatIds)
+    .order('created_at', { ascending: false });
+
+  // Build map: chat_id -> last message (first occurrence = most recent)
+  const lastMessageByChat = {};
+  if (recentMessages) {
+    for (const msg of recentMessages) {
+      if (!lastMessageByChat[msg.chat_id]) {
+        lastMessageByChat[msg.chat_id] = msg;
       }
+    }
+  }
 
-      return {
-        ...chat,
-        lastMessage,
-        otherMember,
-      };
-    })
-  );
+  // 3. Batch: get other members for private chats
+  const privateChatIds = validChats
+    .filter(c => c.type === 'private')
+    .map(c => c.id);
 
-  const filteredChats = chats.filter(chat => chat.lastMessage);
+  const otherMemberByChat = {};
+  if (privateChatIds.length > 0) {
+    const { data: allMembers } = await supabase
+      .from('chat_members')
+      .select('chat_id, user:users(id, first_name, last_name, avatar_url)')
+      .in('chat_id', privateChatIds)
+      .neq('user_id', userId);
 
-  return { data: filteredChats, error: null };
+    if (allMembers) {
+      for (const m of allMembers) {
+        otherMemberByChat[m.chat_id] = m.user;
+      }
+    }
+  }
+
+  // Assemble
+  const chats = validChats
+    .map(chat => ({
+      ...chat,
+      lastMessage: lastMessageByChat[chat.id] || null,
+      otherMember: otherMemberByChat[chat.id] || null,
+    }))
+    .filter(chat => chat.lastMessage)
+    .sort((a, b) => new Date(b.lastMessage.created_at) - new Date(a.lastMessage.created_at));
+
+  return { data: chats, error: null };
 };
 
 /**
@@ -87,7 +107,7 @@ export const getChatById = async (chatId, userId) => {
       .eq('chat_id', chatId)
       .neq('user_id', userId)
       .maybeSingle();
-    
+
     otherMember = members?.user;
   }
 
@@ -139,14 +159,16 @@ export const getOrCreatePrivateChat = async (userId1, userId2) => {
 };
 
 /**
- * Get or create class chat
+ * Get or create class chat (filtra per anno scolastico)
  */
-export const getOrCreateClassChat = async (classId, className, userId) => {
+export const getOrCreateClassChat = async (classId, className, userId, schoolYear) => {
   const { data: existingChat } = await supabase
     .from('chats')
     .select('id')
     .eq('type', 'class')
     .eq('class_id', classId)
+    .eq('school_year', schoolYear)
+    .is('archived_at', null)
     .maybeSingle();
 
   if (existingChat) {
@@ -166,6 +188,7 @@ export const getOrCreateClassChat = async (classId, className, userId) => {
       type: 'class',
       name: `Chat ${className}`,
       class_id: classId,
+      school_year: schoolYear,
       created_by: userId,
     })
     .select()
@@ -182,6 +205,54 @@ export const getOrCreateClassChat = async (classId, className, userId) => {
     });
 
   return { data: newChat, error: null };
+};
+
+/**
+ * Crea chat di classe (chiamata dall'admin alla creazione classe)
+ */
+export const createClassChatForAdmin = async (classId, className, adminId, schoolYear) => {
+  // Verifica che non esista già
+  const { data: existing } = await supabase
+    .from('chats')
+    .select('id')
+    .eq('type', 'class')
+    .eq('class_id', classId)
+    .eq('school_year', schoolYear)
+    .is('archived_at', null)
+    .maybeSingle();
+
+  if (existing) return { data: existing, error: null };
+
+  const { data: newChat, error } = await supabase
+    .from('chats')
+    .insert({
+      type: 'class',
+      name: `Chat ${className}`,
+      class_id: classId,
+      school_year: schoolYear,
+      created_by: adminId,
+    })
+    .select()
+    .single();
+
+  return { data: newChat, error };
+};
+
+/**
+ * Archivia la chat di classe (durante promozioni)
+ */
+export const archiveClassChat = async (classId, schoolYear) => {
+  const { data, error } = await supabase
+    .from('chats')
+    .update({ archived_at: new Date().toISOString() })
+    .eq('type', 'class')
+    .eq('class_id', classId)
+    .eq('school_year', schoolYear)
+    .is('archived_at', null)
+    .select()
+    .maybeSingle();
+
+  return { data, error };
 };
 
 /**

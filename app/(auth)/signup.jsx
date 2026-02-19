@@ -1,4 +1,4 @@
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import React, { useRef, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -73,73 +73,85 @@ const SignUp = () => {
   return (
     <ScreenWrapper bg={theme.colors.background} edges={['top', 'bottom']}>
       <StatusBar style="dark" />
-      <View style={styles.container}>
-        <BackButton router={router} />
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={{ paddingBottom: hp(4) }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <BackButton router={router} />
 
-        <View style={styles.header}>
-          <Text style={styles.title}>Crea account 🎓</Text>
-          <Text style={styles.subtitle}>
-            Usa la tua email scolastica per registrarti
-          </Text>
-        </View>
+          <View style={styles.header}>
+            <Text style={styles.title}>Crea account 🎓</Text>
+            <Text style={styles.subtitle}>
+              Usa la tua email scolastica per registrarti
+            </Text>
+          </View>
 
-        <View style={styles.infoBox}>
-          <Icon name="info" size={18} color={theme.colors.secondary} />
-          <Text style={styles.infoText}>
-            Solo email @cattaneodigitale.it sono accettate
-          </Text>
-        </View>
+          <View style={styles.infoBox}>
+            <Icon name="info" size={18} color={theme.colors.secondary} />
+            <Text style={styles.infoText}>
+              Solo email @cattaneodigitale.it sono accettate
+            </Text>
+          </View>
 
-        {/* Google Sign In */}
-        <GoogleSignInButton
-          onSuccess={handleGoogleSuccess}
-          onError={handleGoogleError}
-        />
-
-        {/* Divider */}
-        <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>oppure</Text>
-          <View style={styles.dividerLine} />
-        </View>
-
-        <View style={styles.form}>
-          <Input
-            icon={<Icon name="mail" size={22} color={theme.colors.textLight} />}
-            placeholder="nome.cognome@cattaneodigitale.it"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            onChangeText={(value) => (emailRef.current = value)}
+          {/* Google Sign In */}
+          <GoogleSignInButton
+            onSuccess={handleGoogleSuccess}
+            onError={handleGoogleError}
           />
 
-          <Input
-            icon={<Icon name="lock" size={22} color={theme.colors.textLight} />}
-            placeholder="Password"
-            secureTextEntry
-            onChangeText={(value) => (passwordRef.current = value)}
-          />
+          {/* Divider */}
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>oppure</Text>
+            <View style={styles.dividerLine} />
+          </View>
 
-          <Input
-            icon={<Icon name="lock" size={22} color={theme.colors.textLight} />}
-            placeholder="Conferma password"
-            secureTextEntry
-            onChangeText={(value) => (confirmPasswordRef.current = value)}
-          />
+          <View style={styles.form}>
+            <Input
+              icon={<Icon name="mail" size={22} color={theme.colors.textLight} />}
+              placeholder="nome.cognome@cattaneodigitale.it"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              onChangeText={(value) => (emailRef.current = value)}
+            />
 
-          <Button 
-            title="Registrati" 
-            loading={loading} 
-            onPress={onSubmit}
-          />
-        </View>
+            <Input
+              icon={<Icon name="lock" size={22} color={theme.colors.textLight} />}
+              placeholder="Password"
+              secureTextEntry
+              textContentType="oneTimeCode"
+              onChangeText={(value) => (passwordRef.current = value)}
+            />
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Hai già un account? </Text>
-          <Pressable onPress={() => router.push('/(auth)/login')}>
-            <Text style={styles.footerLink}>Accedi</Text>
-          </Pressable>
-        </View>
-      </View>
+            <Input
+              icon={<Icon name="lock" size={22} color={theme.colors.textLight} />}
+              placeholder="Conferma password"
+              secureTextEntry
+              textContentType="oneTimeCode"
+              onChangeText={(value) => (confirmPasswordRef.current = value)}
+            />
+
+            <Button
+              title="Registrati"
+              loading={loading}
+              onPress={onSubmit}
+            />
+          </View>
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Hai già un account? </Text>
+            <Pressable onPress={() => router.push('/(auth)/login')}>
+              <Text style={styles.footerLink}>Accedi</Text>
+            </Pressable>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </ScreenWrapper>
   );
 };

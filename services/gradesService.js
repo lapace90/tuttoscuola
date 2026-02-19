@@ -138,9 +138,17 @@ export const getClassStudentsWithGrades = async (classId, subject) => {
 
   if (gradesError) return { data: null, error: gradesError };
 
-  // Map grades to students
+  // Pre-build grades map by student_id (O(N) instead of O(N*M))
+  const gradesByStudent = {};
+  for (const g of grades) {
+    if (!gradesByStudent[g.student_id]) {
+      gradesByStudent[g.student_id] = [];
+    }
+    gradesByStudent[g.student_id].push(g);
+  }
+
   const studentsWithGrades = students.map(student => {
-    const studentGrades = grades.filter(g => g.student_id === student.id);
+    const studentGrades = gradesByStudent[student.id] || [];
     const average = studentGrades.length > 0
       ? (studentGrades.reduce((sum, g) => sum + parseFloat(g.value), 0) / studentGrades.length).toFixed(2)
       : null;
@@ -148,7 +156,7 @@ export const getClassStudentsWithGrades = async (classId, subject) => {
     return {
       ...student,
       grades: studentGrades,
-      average
+      average,
     };
   });
 

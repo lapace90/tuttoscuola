@@ -79,6 +79,7 @@ const AdminClasses = () => {
         name: className,
         year,
         instituteId: profile.institute_id,
+        adminId: profile.id,
       });
       if (error) Alert.alert('Errore', error.message);
       else {
