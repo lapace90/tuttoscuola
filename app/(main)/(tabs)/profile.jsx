@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, Pressable, Alert } from 'react-native';
 import React from 'react';
+import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import { hp, wp } from '../../../helpers/common';
 import { theme, roleColors } from '../../../constants/theme';
@@ -206,7 +207,7 @@ const Profile = () => {
           <Text style={styles.logoutText}>Esci</Text>
         </Pressable>
 
-        <Text style={styles.version}>TuttoScuola v1.0.0</Text>
+        <Text style={styles.version}>TuttoScuola v{Constants.expoConfig?.version || '1.0.0'}</Text>
       </ScrollView>
     </ScreenWrapper>
   );

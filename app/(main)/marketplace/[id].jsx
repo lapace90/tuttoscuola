@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Dimensions, ActionSheetIOS, Share } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Dimensions, ActionSheetIOS, Platform, Share } from 'react-native';
 import { Image } from 'expo-image';
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -52,31 +52,47 @@ const ListingDetail = () => {
 
   const isOwner = listing?.seller_id === profile?.id;
 
-  const showActionMenu = () => {
-    const options = isOwner
-      ? ['Annulla', 'Condividi', 'Invia in chat']
-      : ['Annulla', 'Condividi', 'Invia in chat', 'Segnala contenuto'];
+  const handleShareListing = async () => {
+    const text = `${listing.title}${listing.price ? ` - ${parseFloat(listing.price).toFixed(2)} €` : ''}\n\n${listing.description || ''}`;
+    await Share.share({ message: text.trim() });
+  };
 
-    ActionSheetIOS.showActionSheetWithOptions(
-      {
-        options,
-        cancelButtonIndex: 0,
-        destructiveButtonIndex: isOwner ? undefined : 3,
-      },
-      async (buttonIndex) => {
-        if (buttonIndex === 1) {
-          const text = `${listing.title}${listing.price ? ` - ${parseFloat(listing.price).toFixed(2)} €` : ''}\n\n${listing.description || ''}`;
-          await Share.share({ message: text.trim() });
-        } else if (buttonIndex === 2) {
-          router.push({
-            pathname: '/(main)/marketplace/share',
-            params: { title: listing.title, price: listing.price || '', listingId: listing.id },
-          });
-        } else if (buttonIndex === 3 && !isOwner) {
-          router.push('/(main)/support/report');
+  const handleSendInChat = () => {
+    router.push({
+      pathname: '/(main)/marketplace/share',
+      params: { title: listing.title, price: listing.price || '', listingId: listing.id },
+    });
+  };
+
+  const showActionMenu = () => {
+    if (Platform.OS === 'ios') {
+      const options = isOwner
+        ? ['Annulla', 'Condividi', 'Invia in chat']
+        : ['Annulla', 'Condividi', 'Invia in chat', 'Segnala contenuto'];
+
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options,
+          cancelButtonIndex: 0,
+          destructiveButtonIndex: isOwner ? undefined : 3,
+        },
+        async (buttonIndex) => {
+          if (buttonIndex === 1) await handleShareListing();
+          else if (buttonIndex === 2) handleSendInChat();
+          else if (buttonIndex === 3 && !isOwner) router.push('/(main)/support/report');
         }
+      );
+    } else {
+      const buttons = [
+        { text: 'Condividi', onPress: handleShareListing },
+        { text: 'Invia in chat', onPress: handleSendInChat },
+      ];
+      if (!isOwner) {
+        buttons.push({ text: 'Segnala contenuto', style: 'destructive', onPress: () => router.push('/(main)/support/report') });
       }
-    );
+      buttons.push({ text: 'Annulla', style: 'cancel' });
+      Alert.alert('Opzioni', '', buttons);
+    }
   };
 
   const handleContact = async () => {

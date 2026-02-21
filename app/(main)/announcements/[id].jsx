@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, Pressable, ActionSheetIOS, Share } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, ActionSheetIOS, Alert, Platform, Share } from 'react-native';
 import React, { useState, useEffect } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { hp, wp, getRelativeTime } from '../../../helpers/common';
@@ -47,22 +47,31 @@ const AnnouncementDetail = () => {
     setLoading(false);
   };
 
+  const handleShare = async () => {
+    const text = `${announcement.title}\n\n${announcement.content || ''}`;
+    await Share.share({ message: text.trim() });
+  };
+
   const showActionMenu = () => {
-    ActionSheetIOS.showActionSheetWithOptions(
-      {
-        options: ['Annulla', 'Condividi', 'Segnala contenuto'],
-        cancelButtonIndex: 0,
-        destructiveButtonIndex: 2,
-      },
-      async (buttonIndex) => {
-        if (buttonIndex === 1) {
-          const text = `${announcement.title}\n\n${announcement.content || ''}`;
-          await Share.share({ message: text.trim() });
-        } else if (buttonIndex === 2) {
-          router.push('/(main)/support/report');
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Annulla', 'Condividi', 'Segnala contenuto'],
+          cancelButtonIndex: 0,
+          destructiveButtonIndex: 2,
+        },
+        async (buttonIndex) => {
+          if (buttonIndex === 1) await handleShare();
+          else if (buttonIndex === 2) router.push('/(main)/support/report');
         }
-      }
-    );
+      );
+    } else {
+      Alert.alert('Opzioni', '', [
+        { text: 'Condividi', onPress: handleShare },
+        { text: 'Segnala contenuto', style: 'destructive', onPress: () => router.push('/(main)/support/report') },
+        { text: 'Annulla', style: 'cancel' },
+      ]);
+    }
   };
 
   if (loading) {
